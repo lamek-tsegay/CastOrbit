@@ -112,3 +112,36 @@ offset is real but not a single altitude-independent constant.
 
 ---
 
+## Validation
+
+Four tests are specified in [PHYSICS.md §8](PHYSICS.md#8-validation); a fifth,
+Swarm C, is an optional secondary check the paper itself uses.
+
+| Test | What it checks | Result |
+|---|---|---|
+| **1 — Energy conservation** | `rho=0, F=0` ⇒ `da/dt=0` exactly, over a simulated week | Relative change in `a`: **0.000e+00** (limit 1e-12) |
+| **2 — Pure thrust spiral** | Closed-form `a(t) = a0/(1-(F/m)t√(a0/MU))²` vs numerical, 1 day | **4.07e-15** relative (limit 1e-4). Convergence order independently confirmed at coarser steps: **4.00–4.03** (see `test_2b`/`test_2c` in [`tests/test_validation.py`](tests/test_validation.py) — at 10 s the error is round-off floor, not truncation) |
+| **3 — Critical density fixed point** | `da/dt=0` at the computed `h_crit`, held 1 hour | `\|da/dt\|` / thrust term: **2.1e-16** (limit 1e-9) |
+| **4 — Baruah reproduction** | Two bounding cases vs published targets | **+18.2%** and **−18.5%** decay-timing error — both inside the paper's own 20% acceptance band, and both explained by the single finding above |
+| **Swarm C (secondary, flagged weakest)** | 434 km, 468 kg, 0.7 m², Cd 1.0, 53.78 h window | CastOrbit: 18.31 m decay. Paper's model: 25.02 m (**×1.366** implied). Observed: 23.08 m (**×1.260** implied) |
+
+**Why Swarm C is flagged as the weakest evidence, not dropped.** Its implied
+correction (×1.366) is ~14% larger than the Starlink pair's tight 2.0%
+agreement, and it depends on an inclination (87.4°) that is **not in this
+repo's data files** — I used the published Swarm C orbital inclination by the
+same density-sampling convention applied elsewhere, but the sensitivity is
+real: sampling latitude alone moves the implied correction from ×1.218 (0°) to
+×1.449 (45°), a wider spread than the gap being explained. Swarm C confirms the
+*direction* of the offset at a second altitude; it should not be read as
+independently pinning its *size*. See `swarm_c_validation` in
+[`sim/validate.py`](sim/validate.py).
+
+Four validation tests, all passing, live in
+[`tests/test_validation.py`](tests/test_validation.py),
+[`tests/test_baruah.py`](tests/test_baruah.py),
+[`tests/test_atmosphere.py`](tests/test_atmosphere.py) and
+[`tests/test_critical.py`](tests/test_critical.py) — 39 tests total, run with
+`pytest`.
+
+---
+
