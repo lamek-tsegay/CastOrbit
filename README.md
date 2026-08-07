@@ -56,3 +56,59 @@ a single systematic offset in `rho·Cd·A`, not a bug specific to one
 configuration — see `density_scale_diagnostic` in
 [`sim/validate.py`](sim/validate.py).
 
+**3 — The fleet loss count, from a completely different angle.** The first two
+diagnostics adjust density while holding Cd and A at Baruah's own values. The
+fleet reproduction does the opposite: it holds density fixed (scale 1.0) and
+asks what ram-area range, combined with this project's own baseline drag
+coefficient (Cd = 2.2, not Baruah's 1.0), reproduces the observed 38 losses out
+of 49 satellites kept in safe mode (F = 0) from deployment to 2022-02-08.
+
+Naively combining Cd = 2.2 with Baruah's published area range (1.00–4.48 m²)
+loses **all 49** satellites — unsurprising, since that range was calibrated
+against Cd = 1.0, and 2.2× the drag coefficient with the same area is roughly
+2.2× the drag. Solving for the area range that *does* reproduce 38 losses at
+Cd = 2.2 gives a uniform range of **0.52–2.34 m²**, i.e. the published range
+scaled by **×0.523**.
+
+That scaled range, converted back to the effective drag parameter that
+actually enters the equation:
+
+```
+Cd * A  =  2.2 * [0.52, 2.34]  =  [1.15, 5.15] m²
+```
+
+Compare that to Baruah's own effective drag range, `Cd * A = 1.0 * [1.00,
+4.48] = [1.00, 4.48] m²`. The two ranges nearly coincide — and the small gap
+between them (roughly 15% at both ends) is the same ~15–20% correction found
+by diagnostics 1 and 2, arrived at from the fleet's *loss count* rather than
+any single satellite's decay curve, using a different Cd convention entirely.
+Three methods, three different pieces of evidence, one number.
+
+**What this means:** presenting "Cd = 2.2 loses everyone, Cd = 1.0 roughly
+matches" as a contradiction between two arbitrary choices would be the wrong
+reading. It is the same 15–20% effective-drag correction showing up a third
+time, because `Cd` and `A` were never separable from each other or from `rho`
+in the first place. The project's own runs use Cd = 2.2
+([`satellite_specs.json`](data/satellite_specs.json), standard free-molecular-flow
+convention); Baruah's use Cd = 1.0, stated as a simplification. Both are
+consistent with the same physical satellite once the ~18% deficit is accounted
+for.
+
+![Baruah et al. (2024) reproduction: two bounding cases](out/baruah_validation.png)
+
+*Both Baruah bounding cases, Cd = 1.0, 227 kg, thrusters off from the
+2022-02-03 18:13 UT epoch. Stars mark the published targets at the 2022-02-05
+08:58 UT reference time. Solid vs dashed lines compare the real 3-hourly space
+weather history against a daily-average simplification — the two are visually
+indistinguishable, discussed in [Uncertainty exceeds signal](#uncertainty-exceeds-signal).*
+
+**What NRLMSIS's own known bias predicts.** This isn't a free parameter fit —
+NRLMSIS 2.1 carries a documented 15–30% density error during geomagnetic
+storms ([PHYSICS.md §10.4](PHYSICS.md#10-known-limitations)). A measured
+15–20% deficit sits at the low edge of that band, not outside it. The
+[Swarm C secondary validation](#validation) below, at a different altitude
+entirely, points the same direction but by a larger margin — evidence the
+offset is real but not a single altitude-independent constant.
+
+---
+
