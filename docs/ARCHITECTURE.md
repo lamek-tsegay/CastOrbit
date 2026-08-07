@@ -174,49 +174,91 @@ polish, not the writeup.
 
 ## 6. JSON contract
 
-Define this before writing frontend code. Suggested shape:
+Two files, `out/batch.json` and `out/sweeps.json`, emitted by
+`sim/export.py`. Deliberately separate rather than one stretched schema — a
+Monte Carlo batch and a parameter sweep are different shapes of data and
+forcing them into one file just makes both harder to consume.
+
+### `out/batch.json`
+
+The fleet reproduction: both Cd conventions compared throughout the README's
+central finding, run side by side rather than picking one. Every satellite
+carries its own `cd_times_area_m2` — the one parameter that's actually
+observable from a decay curve (see the README) — rather than leaving a
+frontend to recompute `cd * ram_area_m2` itself.
 
 ```json
 {
   "meta": {
-    "scenario": "feb2022_validation",
+    "scenario": "fleet_reproduction_feb2022",
     "generated": "ISO-8601",
     "sim_version": "git sha",
-    "atmosphere_model": "NRLMSIS 2.1 via pymsis 0.12.0"
-  },
-  "config": {
-    "epoch": "2022-02-03T18:13:00Z",
+    "atmosphere_model": "NRLMSIS 2.1 via pymsis 0.12.0",
+    "epoch": "2022-02-03T17:43:00+00:00",
+    "window_end": "2022-02-08T00:00:00+00:00",
     "n_satellites": 49,
-    "cd": 1.0,
     "insertion_altitude_km": 210.0,
-    "target_shell_km": 550.0
+    "reentry_altitude_km": 100.0
   },
-  "critical_altitude": {
-    "times": ["ISO-8601", "..."],
-    "h_crit_km": [200.3, 199.8, "..."]
-  },
-  "satellites": [
+  "observed": { "lost": 38, "survived": 11, "source": "data/event_feb2022.json" },
+  "runs": [
     {
-      "id": 0,
-      "params": { "mass_kg": 227.0, "ram_area_m2": 2.1, "thrust_n": 0.0 },
-      "outcome": "REENTERED",
-      "outcome_time": "ISO-8601",
-      "trajectory": {
-        "t_s": [0, 600, 1200],
-        "h_km": [210.0, 209.4, 208.7],
-        "rho": [1.47e-10, 1.51e-10, 1.55e-10]
-      }
-    }
+      "label": "cd2.2",
+      "description": "this project's own baseline Cd",
+      "config": {
+        "cd": 2.2, "density_scale": 1.0,
+        "ram_area_range_m2": [1.00, 4.48],
+        "effective_drag_range_m2": [2.20, 9.86]
+      },
+      "outcome_counts": { "REENTERED": 49, "INDETERMINATE": 0, "...": 0 },
+      "critical_altitude": {
+        "_note": "counterfactual -- see sim/export.py",
+        "times": ["ISO-8601", "..."],
+        "h_crit_km": [181.3, 180.9, "..."]
+      },
+      "satellites": [
+        {
+          "id": 0,
+          "params": {
+            "mass_kg": 227.0, "ram_area_m2": 2.1, "cd": 2.2,
+            "cd_times_area_m2": 4.62, "thrust_n": 0.0
+          },
+          "outcome": "REENTERED",
+          "outcome_time": "ISO-8601",
+          "trajectory": {
+            "t_s": [0, 600, 1200],
+            "h_km": [210.0, 209.4, 208.7],
+            "rho": [1.47e-10, 1.51e-10, 1.55e-10]
+          }
+        }
+      ]
+    },
+    { "label": "cd1.0", "...": "same shape, Baruah et al.'s convention" }
   ]
 }
 ```
+
+### `out/sweeps.json`
+
+The three §9 sweep curves plus the analytic critical-altitude band each is
+checked against. See `sim/sweeps.py`'s `plot_from_payload` for the exact keys
+— it plots from this schema alone, which is also how the Phase 4 read-back
+check works (below).
 
 Downsample trajectories for export — 10 minute spacing is plenty for display.
 Keep full resolution in Python.
 
 **Include `critical_altitude` as a time series.** Drawing the critical altitude
 as a moving line on the altitude chart, with trajectories crossing it and then
-diverging, is the single clearest visual in the project.
+diverging, is the single clearest visual in the project. For a fleet in safe
+mode it's a counterfactual (F = 0 the whole window has no balance point) —
+label it as one, as `sim/export.py` does.
+
+**The read-back check is only real if the plotting code cannot see the
+in-memory objects.** `sim/sweeps.py` plots from a plain payload dict, and
+`sim/export.py`'s `replot_sweeps_from_json` / `replot_batch_from_json` feed it
+one parsed straight off disk — `tests/test_export.py` exercises both against
+freshly-written JSON, not a stale file sitting in `out/`.
 
 ---
 
