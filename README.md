@@ -193,3 +193,30 @@ dwell (storm, scale 1.0); 47.4 h with the density correction applied.*
 
 ---
 
+## Two independent code paths agree
+
+The Monte Carlo ensemble in [`sim/montecarlo.py`](sim/montecarlo.py) and the
+analytic critical-altitude solver in [`sim/critical.py`](sim/critical.py) never
+call each other — the sweep integrates 49 trajectories numerically; the solver
+bisects `rho(h) = rho_crit(h)` from [PHYSICS.md §4](PHYSICS.md#4-critical-altitude)
+using nothing but the atmosphere model. They agree anyway: the 50% survival
+crossing in the Monte Carlo sweep sits at **182.2 km**, and the independently
+computed critical-altitude band (mid-range Cd = 2.2, A = 2.74 m²) is
+**181.3–187.7 km** — the numerical result falls inside the analytic band, near
+its lower edge, which is where it should sit: the ensemble also varies Cd, A,
+mass and thrust around the sweep's mid-range point, so the *fraction* crossing
+50% survival at any given altitude is pulled slightly below the single-point
+estimate. Two different pieces of code, built for different purposes, landing
+on the same altitude, is the closest thing this project has to a free
+correctness check.
+
+The vectorised ensemble propagator is also pinned against the scalar
+propagation path used for the Baruah validation
+(`test_ensemble_matches_scalar_propagation` in
+[`tests/test_montecarlo.py`](tests/test_montecarlo.py)): both go through the
+same `rk4_step` and `derivatives`, and after two days of independent
+propagation they agree to **exactly 0.0 relative difference**. There is one
+integrator in this codebase, not two that could quietly drift apart.
+
+---
+
