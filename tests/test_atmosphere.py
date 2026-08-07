@@ -8,13 +8,13 @@ reproduce.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
 import pytest
 
-from sim.atmosphere import SpaceWeather, density_from_indices
+from sim.atmosphere import DensityGrid, SpaceWeather, density_from_indices
 
 DATA = Path(__file__).resolve().parent.parent / "data" / "SW-All.csv"
 
@@ -193,6 +193,66 @@ def test_three_hourly_ap_needs_storm_time_option(capsys):
             f"spiky {run(spiky, True):.4e}  "
             f"({(run(spiky, True) / run(flat, True) - 1) * 100:+.2f}%)"
         )
+
+
+def test_density_grid_interpolation_error(sw, capsys):
+    """PHYSICS.md §6.3 -- interpolation error must be under 1%."""
+    epoch = datetime(2022, 2, 3, 18, 13, tzinfo=timezone.utc)
+    grid = DensityGrid(
+        epoch, sw, lat_deg=REF_LAT, duration_s=2 * 86400.0, storm_time=True
+    )
+    err = grid.max_relative_error(sw)
+    with capsys.disabled():
+        print(
+            f"\n  §6.3 density grid: {grid.n_nodes} time nodes across "
+            f"{len(grid._interps)} 3 h blocks x {grid.alts_km.size} altitudes, "
+            f"max interpolation error = {err * 100:.4f}%"
+        )
+    assert err < 0.01, f"interpolation error {err * 100:.3f}% exceeds 1%"
+
+
+def test_density_grid_reproduces_the_ap_step(sw, capsys):
+    """The 3-hourly ap switch must appear as a step, not a smeared ramp.
+
+    Guards the per-block construction: sampling either side of a 3 h UT
+    boundary must match direct pymsis calls, even though the two samples are
+    milliseconds apart and differ by several percent.
+    """
+    epoch = datetime(2022, 2, 3, 18, 13, tzinfo=timezone.utc)
+    grid = DensityGrid(
+        epoch, sw, lat_deg=REF_LAT, duration_s=2 * 86400.0, storm_time=True
+    )
+    # 21:00 UT on 3 Feb is a slot boundary, 2820 s after the 18:13 epoch.
+    t_boundary = (datetime(2022, 2, 3, 21, 0, tzinfo=timezone.utc) - epoch).total_seconds()
+
+    for offset in (-0.5, +0.5):
+        t = t_boundary + offset
+        when = epoch + timedelta(seconds=t)
+        exact = density_from_indices(
+            [when], [210.0], REF_LAT, 0.0,
+            [sw.f107(when)], [sw.f107a(when)], [sw.ap_array(when)],
+            storm_time=True,
+        )[0, 0]
+        assert grid(t, 210e3) == pytest.approx(exact, rel=1e-3), f"offset {offset}"
+
+    before, after = grid(t_boundary - 0.5, 210e3), grid(t_boundary + 0.5, 210e3)
+    with capsys.disabled():
+        print(
+            f"\n  3 h ap step at 21:00 UT, 210 km: "
+            f"{before:.4e} -> {after:.4e} ({(after / before - 1) * 100:+.2f}%)"
+        )
+
+
+def test_density_grid_matches_direct_call_on_node(sw):
+    """A grid node must return exactly the direct pymsis value."""
+    epoch = datetime(2022, 2, 3, 18, 13, tzinfo=timezone.utc)
+    grid = DensityGrid(epoch, sw, lat_deg=REF_LAT, duration_s=86400.0)
+    when = epoch + timedelta(seconds=3600.0)
+    direct = density_from_indices(
+        [when], [210.0], REF_LAT, 0.0,
+        [sw.f107(when)], [sw.f107a(when)], [sw.ap_array(when)],
+    )[0, 0]
+    assert grid(3600.0, 210e3) == pytest.approx(direct, rel=1e-12)
 
 
 def test_loader_rejects_noncontiguous_data():
