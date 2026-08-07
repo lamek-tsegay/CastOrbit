@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from sim.atmosphere import SpaceWeather
+from sim.atmosphere import SpaceWeather, density_from_indices
 
 DATA = Path(__file__).resolve().parent.parent / "data" / "SW-All.csv"
 
@@ -37,8 +37,16 @@ SW_TABLE = {
 }
 
 # PHYSICS.md §4.1, "Actual densities from NRLMSIS 2.1".
+DENSITY_TABLE = {
+    180.0: (4.118e-10, 4.685e-10),
+    200.0: (2.030e-10, 2.360e-10),
+    210.0: (1.468e-10, 1.726e-10),
+    230.0: (8.010e-11, 9.632e-11),
+    260.0: (3.495e-11, 4.347e-11),
+}
 
-
+# Tolerance is set by the table's own precision: the values are quoted to four
+# significant figures, so 5e-4 relative is "reproduced exactly as printed".
 TABLE_RTOL = 5e-4
 
 
@@ -118,6 +126,73 @@ def test_ap_array_slot_boundaries(sw):
     for slot, expected in enumerate(feb4):
         when = datetime(2022, 2, 4, slot * 3 + 1, tzinfo=timezone.utc)
         assert sw.ap_array(when)[1] == expected, f"slot {slot}"
+
+
+def test_density_table_4_1(capsys):
+    """PHYSICS.md §4.1 -- "Actual densities from NRLMSIS 2.1".
+
+    Quiet is ap = 5, storm is ap = 56. Both use pymsis's *default* options,
+    under which NRLMSIS reads only the daily Ap; see the `atmosphere` module
+    docstring. The "ap3 = 80" annotation in the §4.1 caption has no effect on
+    these numbers and is not required to reproduce them.
+    """
+    alts = np.array(sorted(DENSITY_TABLE))
+    n = len(alts)
+
+    def run(ap):
+        return density_from_indices(
+            [REF_DATE] * 1, alts, REF_LAT, REF_LON,
+            [REF_F107], [REF_F107A], [[ap] * 7],
+        )[0]
+
+    quiet, storm = run(5), run(56)
+
+    with capsys.disabled():
+        print("\n  §4.1 density table (computed / published):")
+        print("    alt      quiet computed    published     storm computed    published")
+    for i, alt in enumerate(alts):
+        q_pub, s_pub = DENSITY_TABLE[float(alt)]
+        with capsys.disabled():
+            print(
+                f"    {alt:5.0f} km  {quiet[i]:.4e}      {q_pub:.3e}    "
+                f"{storm[i]:.4e}      {s_pub:.3e}"
+            )
+        assert quiet[i] == pytest.approx(q_pub, rel=TABLE_RTOL), f"quiet {alt} km"
+        assert storm[i] == pytest.approx(s_pub, rel=TABLE_RTOL), f"storm {alt} km"
+
+
+def test_three_hourly_ap_needs_storm_time_option(capsys):
+    """The 3-hourly ap array is inert unless `storm_time=True`.
+
+    Documents the trap rather than asserting a published number: with default
+    options, changing aps[1:] from 5 to 80 changes the density by nothing at
+    all. This is why PHYSICS.md §6.2's history assembly must be paired with the
+    storm-time option in Phase 2.
+    """
+    alt = np.array([210.0])
+    common = dict(lat_deg=REF_LAT, lon_deg=REF_LON)
+
+    def run(aps, storm_time):
+        return density_from_indices(
+            [REF_DATE], alt, REF_LAT, REF_LON,
+            [REF_F107], [REF_F107A], [aps], storm_time=storm_time,
+        )[0, 0]
+
+    flat = [56] * 7
+    spiky = [56, 80, 80, 80, 80, 56, 56]
+
+    assert run(flat, False) == run(spiky, False), "default options should ignore aps[1:]"
+    assert run(flat, True) != run(spiky, True), "storm-time options should read aps[1:]"
+
+    with capsys.disabled():
+        print(
+            f"\n  3-hourly ap sensitivity at 210 km:\n"
+            f"    default options : flat {run(flat, False):.4e}  "
+            f"spiky {run(spiky, False):.4e}  (identical)\n"
+            f"    storm_time=True : flat {run(flat, True):.4e}  "
+            f"spiky {run(spiky, True):.4e}  "
+            f"({(run(spiky, True) / run(flat, True) - 1) * 100:+.2f}%)"
+        )
 
 
 def test_loader_rejects_noncontiguous_data():
