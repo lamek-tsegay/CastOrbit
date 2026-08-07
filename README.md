@@ -145,3 +145,51 @@ Four validation tests, all passing, live in
 
 ---
 
+## Uncertainty exceeds signal
+
+The three required parameter sweeps ([PHYSICS.md §9](PHYSICS.md#9-monte-carlo))
+each ran at density scale 1.0 (NRLMSIS as reported) and 1.19 (the correction
+found above), plotted as a band, so the uncorrected result stays visible rather
+than being silently folded in.
+
+![Survival vs insertion altitude](out/sweep_insertion_altitude.png)
+
+*49 satellites, thrusters nominal from deployment, Cd 2.0–2.4, ram area
+1.00–4.48 m². Solid = NRLMSIS as-is, dashed = density ×1.19 band. Shaded
+vertical bands are the analytic critical altitude from
+[§4](PHYSICS.md#4-critical-altitude), computed independently — see
+[next section](#two-independent-code-paths-agree).*
+
+The headline number from this sweep: **the storm shifts the 50% survival
+altitude by +2.0 km (182.2 → 180.2 km, storm vs quiet); the density-model
+uncertainty shifts it by +4.2 km (182.2 → 186.5 km, scale 1.0 vs 1.19)**. The
+uncertainty in the atmosphere model moves the answer **more than twice as far**
+as the geomagnetic storm the whole project is nominally about. That is
+[PHYSICS.md §10.4](PHYSICS.md#10-known-limitations) as a number rather than a
+caveat, and it is the reason this section comes before the sweep results
+themselves rather than after.
+
+Two smaller findings from the same sweeps:
+
+- **The disputed ram-area range barely matters.** Survival is flat at 1.00
+  across the *entire* published 1.00–4.48 m² range at 210 km — the 4–10×
+  disagreement between secondary sources on the *nominal* ram area
+  ([`data/satellite_specs.json`](data/satellite_specs.json)) turns out to be
+  irrelevant to this outcome. It only starts to bite at the far larger,
+  independently disputed 5–6 m² figure, and only with the density band applied.
+
+  ![Survival vs ram area](out/sweep_ram_area.png)
+- **3-hourly vs daily-average space weather barely matters either.** Despite
+  the Feb 2022 storm's two distinct ap peaks (09–12 UT on 3 Feb, before launch;
+  15–18 UT on 4 Feb), using the real 3-hourly history instead of the daily
+  average shifts Baruah reentry timing by **−0.5%** (visually indistinguishable
+  in the figure above). `AP_AVG` is by construction the mean of the eight
+  3-hourly values, and a multi-day decay integral averages the spikes back out.
+
+![Survival vs safe-mode exit timing](out/sweep_safe_mode_timing.png)
+
+*How late could the fleet have recovered? 50% survival at 63.9 h of safe-mode
+dwell (storm, scale 1.0); 47.4 h with the density correction applied.*
+
+---
+
