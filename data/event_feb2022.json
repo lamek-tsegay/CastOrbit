@@ -1,0 +1,87 @@
+{
+  "_comment": "Validation target for the February 2022 Starlink loss. All values from Baruah et al. (2024) unless noted. This file is the answer key: the simulator is graded against it. Do not modify values to make the model agree.",
+
+  "event": {
+    "name": "Starlink Group 4-7 loss",
+    "launch_time_utc": "2022-02-03T18:13:00Z",
+    "satellites_launched": 49,
+    "satellites_lost": 38,
+    "satellites_survived": 11,
+    "generation": "v1.5",
+    "propulsion": "krypton Hall-effect",
+    "source": "Baruah et al. 2024, Space Weather 22, e2023SW003716",
+    "doi": "10.1029/2023SW003716"
+  },
+
+  "orbit": {
+    "insertion_perigee_km": 210.0,
+    "inclination_deg": 53.22,
+    "assumed_circular": true,
+    "_note": "Real insertion was elliptical with ~210 km perigee. The circular assumption is a documented model limitation (PHYSICS.md section 10.1).",
+    "source": "Baruah et al. 2024, section 5"
+  },
+
+  "satellite_as_modelled_by_paper": {
+    "_comment": "These are the paper's own modelling choices. Use these EXACTLY for validation. They are not necessarily the best physical values.",
+    "mass_kg": 227.0,
+    "drag_coefficient": 1.0,
+    "_cd_warning": "The paper uses Cd = 1.0, stated explicitly as a simplification for comparative analysis. Running validation at 2.2 roughly doubles drag and the model reenters far too early. Validate at 1.0.",
+    "ram_area_min_m2": 1.00,
+    "ram_area_max_m2": 4.48,
+    "_ram_area_note": "The paper describes these as the expected range from assumed 'open book' and 'shark fin' configurations. Treat as bounding cases, not as two discrete attitudes.",
+    "thrust_n": 0.0,
+    "_thrust_note": "Zero. The paper models drag alone. SpaceX commanded the fleet into a low-drag survival attitude with orbit-raising suspended.",
+    "atmosphere_model": "JB2008",
+    "_model_note": "This project uses NRLMSIS 2.1 via pymsis. Exact agreement is not expected. Report the discrepancy; do not tune to hide it."
+  },
+
+  "validation_targets": {
+    "_comment": "Reproduce these. Record whatever you get, including failures.",
+    "reference_time_utc": "2022-02-05T08:58:00Z",
+    "cases": [
+      {
+        "ram_area_m2": 4.48,
+        "target_altitude_km": 100.01,
+        "outcome": "REENTERED",
+        "description": "Reaches unrecoverable altitude by the reference time"
+      },
+      {
+        "ram_area_m2": 1.00,
+        "target_altitude_km": 203.24,
+        "outcome": "SURVIVING",
+        "description": "Decays only ~7 km by the reference time"
+      }
+    ],
+    "acceptance": "Agreement within roughly 20% on decay timing is a good result and should be reported as such. A documented discrepancy with a hypothesis about its cause is stronger than a suspicious exact match."
+  },
+
+  "space_weather_context": {
+    "storm_classification": "moderate",
+    "_significance": "The paper's central finding: space weather alone did not cause the loss. It combined with low-altitude insertion and a low ballistic coefficient. Do not present this as 'a storm killed them'.",
+    "dst_peak_feb3_nt": -66,
+    "dst_peak_feb4_nt": -62,
+    "kp_peak": "5+",
+    "swarm_c_density_increase_feb3_pct": 125,
+    "swarm_c_density_increase_feb4_pct": 156,
+    "_swarm_note": "Swarm C is at ~434 km. Storm density enhancement is weaker at 210 km. Do not apply these percentages at insertion altitude.",
+    "source": "Baruah et al. 2024, sections 3 and 5"
+  },
+
+  "corroborating_sources": {
+    "_comment": "Other published analyses of the same event. Useful for the writeup; counts vary slightly between studies.",
+    "kataoka_2022": {
+      "citation": "Kataoka et al. 2022, J. Space Weather Space Clim. 12, 41",
+      "satellites_lost": 38
+    },
+    "zhang_2022": {
+      "citation": "Zhang et al. 2022, Space Weather 20, e2022SW003168",
+      "satellites_lost": 40
+    },
+    "guarnieri_2023": {
+      "citation": "Guarnieri et al. 2023, arXiv:2307.02923",
+      "satellites_lost": 32,
+      "note": "NORAD tracking analysis; suggests possible immediate loss of 32"
+    },
+    "_discrepancy_note": "Published loss counts range from 32 to 40. Use 38 as the primary figure and mention the spread in the writeup. This variation is itself worth noting."
+  }
+}
