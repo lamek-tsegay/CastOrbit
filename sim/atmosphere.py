@@ -25,6 +25,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
+from pymsis import msis
 
 # Column indices in SW-All.csv, verified against the header in PHYSICS.md §6.2.
 _COL_DATE = 0
@@ -173,5 +174,81 @@ class SpaceWeather:
 def _opt_float(text: str) -> float | None:
     text = text.strip()
     return float(text) if text else None
+
+
+def _naive_utc(dates: list[datetime]) -> list[datetime]:
+    """Strip tzinfo after converting to UTC.
+
+    numpy cannot represent timezones in datetime64 and pymsis only warns about
+    it. Everything in this project is UTC, so the conversion is explicit here
+    rather than left to a silent coercion.
+    """
+    out = []
+    for d in dates:
+        if d.tzinfo is not None:
+            d = d.astimezone(timezone.utc).replace(tzinfo=None)
+        out.append(d)
+    return out
+
+
+def _options(storm_time: bool) -> list[float] | None:
+    """NRLMSIS switch array. See the module-level trap note."""
+    if not storm_time:
+        return None
+    return msis.create_options(geomagnetic_activity=-1)
+
+
+def density_from_indices(
+    dates: list[datetime],
+    alts_km: np.ndarray | list[float],
+    lat_deg: float,
+    lon_deg: float,
+    f107s: list[float],
+    f107as: list[float],
+    aps: list[list[float]],
+    storm_time: bool = False,
+) -> np.ndarray:
+    """Total mass density, kg/m^3, from explicit space weather indices.
+
+    PHYSICS.md §6.1. `alts_km` is in kilometres, not metres.
+
+    Returns shape (len(dates), len(alts_km)). One latitude/longitude only --
+    the single-point density sampling limitation of PHYSICS.md §10.2.
+    """
+    alts_km = np.atleast_1d(np.asarray(alts_km, dtype=float))
+    out = msis.calculate(
+        _naive_utc(dates), [lon_deg], [lat_deg], alts_km, f107s, f107as, aps,
+        options=_options(storm_time),
+    )
+    # pymsis returns (ndates, nlons, nlats, nalts, nspecies); index 0 is total
+    # mass density. Squeeze only the single lon/lat axes, never the others.
+    rho = np.asarray(out)[..., 0].reshape(len(dates), alts_km.size)
+    return rho
+
+
+def density(
+    dates: list[datetime],
+    alts_m: np.ndarray | list[float],
+    lat_deg: float,
+    sw: SpaceWeather,
+    lon_deg: float = 0.0,
+    storm_time: bool = False,
+) -> np.ndarray:
+    """Density in kg/m^3 with indices pulled from SW-All.csv.
+
+    PHYSICS.md §6.1-6.2. `alts_m` is in **metres** here (converted internally),
+    matching the rest of the simulator's SI convention.
+    """
+    alts_km = np.atleast_1d(np.asarray(alts_m, dtype=float)) / 1e3
+    return density_from_indices(
+        dates,
+        alts_km,
+        lat_deg,
+        lon_deg,
+        [sw.f107(d) for d in dates],
+        [sw.f107a(d) for d in dates],
+        [sw.ap_array(d) for d in dates],
+        storm_time=storm_time,
+    )
 
 
