@@ -27,6 +27,7 @@ import numpy as np
 
 from .constants import R_E
 from .critical import critical_altitude
+from .groundtrack import cause_of_loss, ground_track
 from .satellite import Outcome
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -137,9 +138,11 @@ def _build_run(
     rho_ds = np.array([grid.lookup(float(t), h_hist[i] * 1e3)
                        for i, t in zip(idx, t_ds)])
 
+    n_sats = len(batch)
     satellites = []
-    for k in range(len(batch)):
+    for k in range(n_sats):
         outcome = result.outcomes[k]
+        outcome_value = outcome.value if isinstance(outcome, Outcome) else str(outcome)
         t_out = result.outcome_time_s[k]
         if np.isfinite(t_out):
             keep = t_ds <= t_out
@@ -148,6 +151,16 @@ def _build_run(
         else:
             keep = np.ones(t_ds.size, dtype=bool)
         area = float(batch.area_m2[k])
+        outcome_time_iso = (
+            (epoch + timedelta(seconds=float(t_out))).isoformat()
+            if np.isfinite(t_out) else None
+        )
+        t_kept = t_ds[keep]
+        h_kept = h_hist[idx][keep, k]
+        lat_deg, lon_deg = ground_track(
+            t_kept, h_kept, satellite_id=k, n_satellites=n_sats,
+            deploy_time_s=float(batch.deploy_time_s[k]),
+        )
         satellites.append({
             "id": k,
             "params": {
@@ -161,15 +174,15 @@ def _build_run(
                     float(batch.insertion_altitude_m[k]) / 1e3, 4),
                 "deploy_time_s": round(float(batch.deploy_time_s[k]), 1),
             },
-            "outcome": outcome.value if isinstance(outcome, Outcome) else str(outcome),
-            "outcome_time": (
-                (epoch + timedelta(seconds=float(t_out))).isoformat()
-                if np.isfinite(t_out) else None
-            ),
+            "outcome": outcome_value,
+            "outcome_time": outcome_time_iso,
+            "cause": cause_of_loss(outcome_value, outcome_time_iso, cd * area),
             "trajectory": {
-                "t_s": [round(float(v), 1) for v in t_ds[keep]],
-                "h_km": [round(float(v), 4) for v in h_hist[idx][keep, k]],
+                "t_s": [round(float(v), 1) for v in t_kept],
+                "h_km": [round(float(v), 4) for v in h_kept],
                 "rho": [float(f"{v:.6g}") for v in rho_ds[keep, k]],
+                "lat_deg": lat_deg,
+                "lon_deg": lon_deg,
             },
         })
 

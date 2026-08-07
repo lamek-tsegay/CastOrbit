@@ -93,6 +93,19 @@ def test_effective_drag_ranges_match_the_readme_finding(batch_payload):
     assert hi == pytest.approx(2.2 * 4.48, abs=1e-6)
 
 
+def test_every_satellite_has_a_ground_track_and_cause(batch_payload):
+    """Phase 5 hard rule: the globe view gets position and cause from Python,
+    never computed in the browser -- so both must already be in the export."""
+    for run in batch_payload["runs"]:
+        for sat in run["satellites"]:
+            tr = sat["trajectory"]
+            assert len(tr["lat_deg"]) == len(tr["t_s"])
+            assert len(tr["lon_deg"]) == len(tr["t_s"])
+            assert all(-90.0 <= v <= 90.0 for v in tr["lat_deg"])
+            assert all(-180.0 <= v <= 180.0 for v in tr["lon_deg"])
+            assert isinstance(sat["cause"], str) and len(sat["cause"]) > 0
+
+
 def test_json_is_plain_data(batch_payload):
     """Round-trips through json.dumps with no numpy types, enums, or NaN."""
     text = json.dumps(batch_payload, allow_nan=False)
