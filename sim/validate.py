@@ -312,6 +312,180 @@ def swarm_c_validation(sw: SpaceWeather, dt: float = 10.0) -> dict:
     }
 
 
+# --------------------------------------------------------------------------
+# Fleet reproduction -- the event-level validation
+# --------------------------------------------------------------------------
+# data/event_feb2022.json: 49 launched, 38 lost, 11 survived. Published counts
+# across studies range 32-40 (Guarnieri 32, Kataoka 38, Zhang 40); 38 is the
+# primary figure. This is graded against reality, not against a model output.
+
+FLEET_N = 49
+FLEET_LOST = 38
+FLEET_SURVIVED = 11
+FLEET_END = datetime(2022, 2, 8, 0, 0, tzinfo=timezone.utc)
+
+
+def run_fleet(
+    sw: SpaceWeather,
+    density_scale: float = 1.0,
+    area_range: tuple[float, float] = (1.00, 4.48),
+    cd: float = 2.2,
+    dt: float = 30.0,
+    seed: int = 20220203,
+    grid=None,
+):
+    """49 satellites, safe mode from deployment, never exiting.
+
+    The satellites keep their drawn ram area throughout: per
+    `data/event_feb2022.json`, the 1.00-4.48 m2 range *is* the paper's bounding
+    range for the safe-mode attitude, not a nominal-flight range. Thrust is
+    zero for the whole window (PHYSICS.md §5) -- orbit raising was never
+    resumed, so nothing can reach the shell and "survivor" means "had not
+    fallen below 100 km by 2022-02-08".
+    """
+    from .montecarlo import build_grid, run_batch, sample_batch
+
+    epoch = EPOCH - timedelta(seconds=1800)
+    t_max = (FLEET_END - epoch).total_seconds()
+    if grid is None:
+        grid = build_grid(sw, epoch, storm=True, duration_s=t_max)
+
+    rng = np.random.default_rng(seed)
+    batch = sample_batch(rng, INSERTION_ALTITUDE_M / 1e3, n=FLEET_N,
+                         area_range=area_range)
+    result = run_batch(
+        batch, grid, dt=dt, t_max_s=t_max,
+        safe_mode_exit_s=np.inf,      # never exits
+        safe_mode_area_m2=None,       # keep the drawn area
+        cd=cd,
+        density_scale=density_scale,
+        sample_every=20,
+    )
+    return result, grid, t_max
+
+
+def fleet_reproduction(sw: SpaceWeather, dt: float = 30.0) -> dict:
+    """Report survivor counts, and if they miss, what area range would not."""
+    from .satellite import Outcome
+
+    print("=" * 78)
+    print("Fleet reproduction -- Starlink Group 4-7, 49 satellites")
+    print("=" * 78)
+    print(f"  safe mode from deployment, never exits (F = 0 throughout)")
+    print(f"  ram area uniform 1.00-4.48 m2, Cd = 2.2, mass ~N(227, 3%)")
+    print(f"  window {EPOCH:%Y-%m-%d %H:%M} -> {FLEET_END:%Y-%m-%d %H:%M} UT")
+    print(f"  observed: {FLEET_LOST} lost / {FLEET_SURVIVED} survived")
+    print()
+
+    out = {}
+    grid = None
+    print("  PRIMARY -- Cd = 2.2 (the project's own convention, PHYSICS.md §8):")
+    for scale in (1.00, 1.19):
+        r, grid, t_max = run_fleet(sw, density_scale=scale, cd=2.2, dt=dt, grid=grid)
+        lost = int(np.sum(r.outcomes == Outcome.REENTERED))
+        out[("cd2.2", scale)] = {"lost": lost, "survived": FLEET_N - lost}
+        print(f"    density x{scale:.2f}:  {lost} lost / {FLEET_N - lost} survived   "
+              f"(observed {FLEET_LOST}/{FLEET_SURVIVED}, "
+              f"{lost - FLEET_LOST:+d} on the loss count)")
+
+    print("\n  COMPARISON -- Cd = 1.0 (Baruah et al.'s convention):")
+    for scale in (1.00, 1.19):
+        r, _, _ = run_fleet(sw, density_scale=scale, cd=1.0, dt=dt, grid=grid)
+        lost = int(np.sum(r.outcomes == Outcome.REENTERED))
+        out[("cd1.0", scale)] = {"lost": lost, "survived": FLEET_N - lost}
+        print(f"    density x{scale:.2f}:  {lost} lost / {FLEET_N - lost} survived   "
+              f"(observed {FLEET_LOST}/{FLEET_SURVIVED}, "
+              f"{lost - FLEET_LOST:+d} on the loss count)")
+
+    print("\n  Critical ram area A* -- the largest area still surviving to "
+          f"{FLEET_END:%d %b}:")
+    for cd in (2.2, 1.0):
+        for scale in (1.00, 1.19):
+            a_star = _critical_ram_area(grid, cd, scale, dt)
+            frac = np.clip((a_star - 1.00) / (4.48 - 1.00), 0.0, 1.0)
+            out[(f"cd{cd}", scale)]["a_star_m2"] = a_star
+            print(f"    Cd = {cd:<4} x{scale:.2f}:  A* = {a_star:.3f} m2  -> "
+                  f"{frac * 100:4.1f}% of a uniform 1.00-4.48 draw survives "
+                  f"({frac * FLEET_N:.1f} of {FLEET_N})")
+
+    print("\n  What ram-area distribution WOULD give 38 lost at Cd = 2.2?")
+    for scale in (1.00, 1.19):
+        k = _solve_area_scale(sw, grid, scale, dt)
+        if k is None:
+            print(f"    density x{scale:.2f}: no scaling of the published range "
+                  f"in 0.05-1.0 reproduces 38")
+            continue
+        r, _, _ = run_fleet(sw, density_scale=scale, cd=2.2,
+                            area_range=(1.00 * k, 4.48 * k), dt=dt, grid=grid)
+        got = int(np.sum(r.outcomes == Outcome.REENTERED))
+        out[("cd2.2", scale)]["area_scale_for_38"] = k
+        print(f"    density x{scale:.2f}: uniform {1.00 * k:.2f}-{4.48 * k:.2f} m2 "
+              f"-> {got} lost   (published range x{k:.3f})")
+    print("    For reference, satellite_specs.json gives the v1.5 knife-edge area")
+    print("    as 0.30-1.00 m2, citing secondary sources at 0.3-0.7 m2.")
+    print()
+    return out
+
+
+def _critical_ram_area(grid, cd: float, scale: float, dt: float) -> float:
+    """Largest ram area whose median satellite still survives the window."""
+    from .montecarlo import run_batch
+    from .satellite import Outcome
+
+    t_max = (FLEET_END - (EPOCH - timedelta(seconds=1800))).total_seconds()
+
+    def survives(area: float) -> bool:
+        from .montecarlo import Batch
+        b = Batch(
+            area_m2=np.array([area]), mass_kg=np.array([MASS_KG]),
+            insertion_altitude_m=np.array([INSERTION_ALTITUDE_M]),
+            deploy_time_s=np.array([1800.0]), thrust_n=np.array([0.0]),
+            cd=np.array([cd]),
+        )
+        r = run_batch(b, grid, dt=dt, t_max_s=t_max, safe_mode_exit_s=np.inf,
+                      safe_mode_area_m2=None, density_scale=scale,
+                      sample_every=10**9)
+        return r.outcomes[0] != Outcome.REENTERED
+
+    lo, hi = 0.01, 8.0
+    if not survives(lo):
+        return float("nan")
+    for _ in range(24):
+        mid = 0.5 * (lo + hi)
+        if survives(mid):
+            lo = mid
+        else:
+            hi = mid
+    return 0.5 * (lo + hi)
+
+
+def _solve_area_scale(sw, grid, scale, dt, target_lost=FLEET_LOST):
+    """Bisect a multiplier on the whole published area range giving 38 losses.
+
+    The published range is scaled as [1.00k, 4.48k]. Smaller k means less drag
+    and fewer losses, so `lost` is monotonically increasing in k.
+    """
+    from .satellite import Outcome
+
+    def lost_for(k: float) -> int:
+        r, _, _ = run_fleet(sw, density_scale=scale, cd=2.2,
+                            area_range=(1.00 * k, 4.48 * k), dt=dt, grid=grid)
+        return int(np.sum(r.outcomes == Outcome.REENTERED))
+
+    lo, hi = 0.05, 1.0
+    if lost_for(lo) > target_lost or lost_for(hi) < target_lost:
+        return None
+    for _ in range(20):
+        if hi - lo < 5e-3:
+            break
+        mid = 0.5 * (lo + hi)
+        if lost_for(mid) < target_lost:
+            lo = mid
+        else:
+            hi = mid
+    return 0.5 * (lo + hi)
+
+
 def _fmt_hours(seconds: float) -> str:
     sign = "-" if seconds < 0 else "+"
     return f"{sign}{abs(seconds) / 3600.0:.2f} h"
