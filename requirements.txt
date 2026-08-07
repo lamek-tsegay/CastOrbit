@@ -1,0 +1,5 @@
+pymsis==0.12.0
+numpy>=1.23
+scipy
+pytest
+matplotlib
