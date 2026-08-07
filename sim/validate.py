@@ -207,6 +207,111 @@ def density_scale_diagnostic(
     return scales
 
 
+# --------------------------------------------------------------------------
+# Secondary validation: Swarm C
+# --------------------------------------------------------------------------
+# data/satellite_specs.json -> reference_satellite. Baruah et al. used Swarm C
+# as a comparison case at a very different altitude: their synthetic ephemeris
+# gave 25.02 m of decay against 23.08 m observed, over the window below.
+
+SWARM_C = {
+    "altitude_m": 434e3,
+    "mass_kg": 468.0,
+    "area_m2": 0.7,
+    "cd": 1.0,
+    "paper_modelled_decay_m": 25.02,
+    "observed_decay_m": 23.08,
+}
+SWARM_C_START = datetime(2022, 2, 3, 18, 13, tzinfo=timezone.utc)
+SWARM_C_END = datetime(2022, 2, 6, 0, 0, tzinfo=timezone.utc)
+SWARM_C_WINDOW_S = (SWARM_C_END - SWARM_C_START).total_seconds()  # 193620 s
+
+# Swarm C flies a near-polar orbit. Its inclination is NOT in this repo's data
+# files; ~87.4 deg is the published figure and is used here by the same
+# convention applied to Starlink (sample density at the orbit's peak latitude).
+# The latitude sensitivity is reported alongside, because at 434 deg polar
+# latitudes this choice is not obviously harmless.
+SWARM_C_LATITUDE_DEG = 87.4
+
+
+def run_swarm_c(
+    sw: SpaceWeather,
+    lat_deg: float = SWARM_C_LATITUDE_DEG,
+    dt: float = 10.0,
+    density_scale: float = 1.0,
+) -> float:
+    """Decay in metres over the Swarm C window. Optional second validation."""
+    grid = DensityGrid(
+        SWARM_C_START, sw, lat_deg=lat_deg, lon_deg=LONGITUDE_DEG,
+        duration_s=SWARM_C_WINDOW_S, storm_time=True,
+    )
+
+    def deriv(t: float, y: np.ndarray) -> np.ndarray:
+        rho = density_scale * grid(t, y[0] - R_E)
+        return derivatives(
+            y, rho, thrust=0.0, cd=SWARM_C["cd"], area=SWARM_C["area_m2"], isp=None
+        )
+
+    a0 = R_E + SWARM_C["altitude_m"]
+    traj = propagate(
+        deriv, np.array([a0, SWARM_C["mass_kg"]]), dt=dt, t_max=SWARM_C_WINDOW_S
+    )
+    return float(a0 - traj.a_m[-1])
+
+
+def swarm_c_validation(sw: SpaceWeather, dt: float = 10.0) -> dict:
+    """Report Swarm C decay and the density multiplier it implies.
+
+    The point of this case is that it sits at 434 km rather than 210 km, with a
+    ballistic coefficient 30x higher. If the Starlink discrepancy really is a
+    uniform density offset, the multiplier implied here should be in the same
+    neighbourhood as the 1.181 / 1.204 from the Starlink bounding cases. If it
+    is wildly different, the offset story is altitude-specific at best.
+    """
+    decay = run_swarm_c(sw, dt=dt)
+    # Decay is linear in density at this magnitude (25 m out of 434 km), so the
+    # implied multiplier is just the ratio. Verified below against a rerun.
+    k_paper = SWARM_C["paper_modelled_decay_m"] / decay
+    k_observed = SWARM_C["observed_decay_m"] / decay
+
+    check = run_swarm_c(sw, dt=dt, density_scale=k_paper)
+    linearity_err = abs(check - SWARM_C["paper_modelled_decay_m"]) / SWARM_C["paper_modelled_decay_m"]
+
+    sensitivity = {
+        lat: run_swarm_c(sw, lat_deg=lat, dt=dt) for lat in (0.0, 45.0, 70.0, 87.4)
+    }
+
+    print("=" * 78)
+    print("Secondary validation -- Swarm C (satellite_specs.json reference_satellite)")
+    print("=" * 78)
+    print(f"  434 km, {SWARM_C['mass_kg']} kg, {SWARM_C['area_m2']} m2, "
+          f"Cd = {SWARM_C['cd']}, thrusters off")
+    print(f"  window {SWARM_C_START:%Y-%m-%d %H:%M} -> {SWARM_C_END:%Y-%m-%d %H:%M} UT "
+          f"({SWARM_C_WINDOW_S / 3600:.2f} h)")
+    print(f"  density latitude {SWARM_C_LATITUDE_DEG}° (Swarm C inclination; "
+          f"not in repo data, see note in source)")
+    print()
+    print(f"  CastOrbit decay          = {decay:.2f} m")
+    print(f"  Baruah modelled decay    = {SWARM_C['paper_modelled_decay_m']:.2f} m  "
+          f"-> implied density multiplier x{k_paper:.3f}")
+    print(f"  Observed decay           = {SWARM_C['observed_decay_m']:.2f} m  "
+          f"-> implied density multiplier x{k_observed:.3f}")
+    print(f"  (linearity check: rerunning at x{k_paper:.3f} reproduces the paper's "
+          f"decay to {linearity_err * 100:.2f}%)")
+    print()
+    print("  latitude sensitivity of the density sampling point (§10.2):")
+    for lat, d in sensitivity.items():
+        print(f"    lat {lat:5.1f}° -> {d:6.2f} m  "
+              f"(x{SWARM_C['paper_modelled_decay_m'] / d:.3f} to match the paper)")
+    print()
+    return {
+        "decay_m": decay,
+        "k_paper": k_paper,
+        "k_observed": k_observed,
+        "sensitivity": sensitivity,
+    }
+
+
 def _fmt_hours(seconds: float) -> str:
     sign = "-" if seconds < 0 else "+"
     return f"{sign}{abs(seconds) / 3600.0:.2f} h"
@@ -308,9 +413,15 @@ def main(
                   f"configuration-dependent error.")
         print()
 
+    swarm = swarm_c_validation(sw, dt=dt)
+
     _save_outputs(results)
-    return {"results": results, "shifts": summary_shifts,
-            "density_scales": scales}
+    return {
+        "results": results,
+        "shifts": summary_shifts,
+        "density_scales": scales,
+        "swarm_c": swarm,
+    }
 
 
 def _save_outputs(results: dict[tuple[float, bool], CaseResult]) -> None:
