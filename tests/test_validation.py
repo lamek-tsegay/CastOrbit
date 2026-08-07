@@ -88,6 +88,82 @@ def test_2_pure_thrust_spiral(capsys):
     assert traj.mass_kg[-1] == MASS, "mass was not held constant"
 
 
+def test_2b_thrust_spiral_is_fourth_order(capsys):
+    """Companion to Test 2: verify RK4's *order*, which Test 2 alone cannot.
+
+    Test 2 as specified in PHYSICS.md §8 passes at ~4e-15 relative and does not
+    degrade when the step is coarsened from 10 s to 100 s. That is not a broken
+    test -- it compares against an independently derived closed form and would
+    still catch a wrong exponent or constant factor -- but it says nothing
+    about convergence order, because this ODE is far too easy. The fractional
+    rate of change is C = (da/dt)/a ~ 8.0e-8 per second, so the RK4 truncation
+    error scales as T*C^5*h^4: about 3e-27 relative at h = 10 s and 3e-23 at
+    h = 100 s. Both are many orders of magnitude below double precision, so the
+    measured error is pure round-off accumulation at ~1e-16 and is flat in h.
+
+    To see h^4 the step has to be coarse enough for truncation to clear the
+    round-off floor, which for this problem means hours per step.
+    """
+    def deriv(t, y):
+        return derivatives(y, rho=0.0, thrust=THRUST, cd=2.2, area=1.0, isp=None)
+
+    def analytic(t):
+        return A0 / (1.0 - (THRUST / MASS) * t * math.sqrt(A0 / MU)) ** 2
+
+    errors = {}
+    for n_steps in (1, 2, 4):
+        dt = DAY / n_steps
+        traj = propagate(deriv, np.array([A0, MASS]), dt=dt, t_max=DAY)
+        errors[dt] = abs(traj.a_m[-1] - analytic(DAY)) / analytic(DAY)
+
+    ratios = [
+        errors[DAY / 1] / errors[DAY / 2],
+        errors[DAY / 2] / errors[DAY / 4],
+    ]
+    orders = [math.log2(r) for r in ratios]
+
+    with capsys.disabled():
+        print("\n  Test 2b: RK4 convergence order (step sizes dividing 1 day)")
+        for n in (1, 2, 4):
+            print(f"          dt = {DAY / n:>6.0f} s  rel error = {errors[DAY / n]:.3e}")
+        print(f"          error ratios {ratios[0]:.2f}, {ratios[1]:.2f} "
+              f"-> implied order {orders[0]:.2f}, {orders[1]:.2f}")
+
+    for order in orders:
+        assert 3.7 < order < 4.3, f"implied convergence order {order:.2f}, expected 4"
+
+
+def test_2c_fine_steps_are_roundoff_limited(capsys):
+    """The flat error from 10 s to 100 s is the round-off floor, not a bug.
+
+    Pins the explanation for Test 2b: at practical step sizes the error sits at
+    a few units of machine epsilon and does not scale with h at all.
+    """
+    def deriv(t, y):
+        return derivatives(y, rho=0.0, thrust=THRUST, cd=2.2, area=1.0, isp=None)
+
+    def analytic(t):
+        return A0 / (1.0 - (THRUST / MASS) * t * math.sqrt(A0 / MU)) ** 2
+
+    errs = {}
+    for dt in (10.0, 100.0):
+        traj = propagate(deriv, np.array([A0, MASS]), dt=dt, t_max=DAY)
+        errs[dt] = abs(traj.a_m[-1] - analytic(DAY)) / analytic(DAY)
+
+    with capsys.disabled():
+        print(
+            f"  Test 2c: rel error at dt=10 s is {errs[10.0]:.3e}, "
+            f"at dt=100 s is {errs[100.0]:.3e} "
+            f"(h^4 would predict a 1e4x rise); machine eps = "
+            f"{np.finfo(float).eps:.2e}"
+        )
+
+    # A 100x coarser step must NOT produce anything like the 1e4x rise that
+    # truncation-limited behaviour would give.
+    assert errs[100.0] < 100 * max(errs[10.0], np.finfo(float).eps)
+    assert errs[100.0] < 1e-12
+
+
 def test_3_critical_density_is_a_fixed_point(capsys):
     """PHYSICS.md §8, Test 3 -- critical density.
 
