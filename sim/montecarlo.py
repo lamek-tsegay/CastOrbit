@@ -150,7 +150,8 @@ def run_batch(
     density_scale: float = 1.0,
     target_shell_m: float = TARGET_SHELL_M,
     sample_every: int = 60,
-
+    safe_mode_area_m2: float | None = KNIFE_EDGE_AREA_M2,
+    cd: float | None = None,
 ) -> BatchResult:
     """Propagate the whole ensemble. PHYSICS.md §3.3 termination, §5 safe mode.
 
@@ -160,6 +161,14 @@ def run_batch(
             the knife-edge ram area -- until that time, then NOMINAL. `inf`
             means safe mode is never exited, which is what actually happened in
             February 2022.
+        safe_mode_area_m2: ram area used while in safe mode. Defaults to the
+            knife-edge area, which models SpaceX's commanded low-drag attitude.
+            Pass None to keep each satellite's drawn area instead -- that is
+            Baruah et al.'s framing, where 1.00-4.48 m2 is itself the bounding
+            range of *safe-mode* attitudes ("open book" to "shark fin"), not a
+            nominal-flight range. The two give materially different answers and
+            the choice must be stated wherever a result is quoted.
+        cd: overrides the per-satellite drawn Cd with a single value.
         density_scale: uniform multiplier on rho. Used to carry the validated
             density uncertainty band (see `sim/validate.py`), never to tune.
 
@@ -174,7 +183,11 @@ def run_batch(
     a0 = R_E + batch.insertion_altitude_m
     y = np.vstack([a0.copy(), batch.mass_kg.copy()])
 
-    knife_area = np.full(n, KNIFE_EDGE_AREA_M2)
+    safe_area = (
+        batch.area_m2 if safe_mode_area_m2 is None
+        else np.full(n, float(safe_mode_area_m2))
+    )
+    cd_arr = batch.cd if cd is None else np.full(n, float(cd))
     zero_thrust = np.zeros(n)
     exit_s = np.inf if safe_mode_exit_s is None else float(safe_mode_exit_s)
     never_safe = safe_mode_exit_s is None
@@ -183,9 +196,9 @@ def run_batch(
         if never_safe or t >= exit_s:
             thrust, area = batch.thrust_n, batch.area_m2
         else:
-            thrust, area = zero_thrust, knife_area
+            thrust, area = zero_thrust, safe_area
         rho = density_scale * grid.lookup(t, state[0] - R_E)
-        return derivatives(state, rho, thrust, batch.cd, area, isp=ISP_S)
+        return derivatives(state, rho, thrust, cd_arr, area, isp=ISP_S)
 
     outcomes = np.full(n, Outcome.INDETERMINATE, dtype=object)
     outcome_time = np.full(n, np.nan)
