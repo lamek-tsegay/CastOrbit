@@ -220,3 +220,43 @@ integrator in this codebase, not two that could quietly drift apart.
 
 ---
 
+## Limitations
+
+Stating these first is the difference between a result that survives being
+questioned and one that doesn't ([`docs/ARCHITECTURE.md` §1](docs/ARCHITECTURE.md)).
+
+1. **`PROPELLANT_EXHAUSTED` is deliberately not modelled.** No propellant mass
+   is published for the v1.5 bus in
+   [`data/satellite_specs.json`](data/satellite_specs.json), and inventing one
+   would put a fabricated number into a headline result. Mass depletes
+   correctly via `dm/dt` using the *derived* Isp (1666 s, itself scaled from a
+   published relative claim, not directly published — see the specs file), but
+   there is no dry-mass floor, so this outcome is unreachable by construction
+   and every batch reports it as zero. That is a stated limitation, not an
+   observation about the fleet.
+2. **Circular orbit assumption.** Real insertion was elliptical with a ~210 km
+   perigee. A circular model at perigee altitude overestimates time-averaged
+   drag; a model at mean altitude underestimates it. Direction of the bias is
+   not quantified here.
+3. **Single-point density sampling.** Density is evaluated at one
+   latitude/longitude rather than integrated around the orbit. The paper cites
+   non-uniform storm-time density enhancement as a possible reason 11
+   satellites specifically survived — this model cannot distinguish which 11.
+4. **Tangential thrust only.** Real orbit-raising uses non-tangential steering
+   laws.
+5. **Empirical atmosphere model error.** NRLMSIS carries a documented 15–30%
+   density error during storms — this is the dominant uncertainty in the
+   entire model, larger than any other parameter spread swept in §9, and is
+   the subject of the central finding above.
+6. **Ram area is inferred, not published.** The 1.00–4.48 m² range comes from
+   Baruah et al.'s own geometric assumptions, not from SpaceX.
+7. **No attitude dynamics.** Attitude is a choice of ram area `A`, not a
+   simulated state. Real satellites tumbled.
+8. **Swarm C's orbital inclination is not in this repo's data** and was
+   supplied externally (87.4°, published) rather than sourced alongside the
+   other validation inputs. See the Swarm C caveat above.
+
+Full list with sourcing: [PHYSICS.md §10](PHYSICS.md#10-known-limitations).
+
+---
+
