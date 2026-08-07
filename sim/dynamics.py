@@ -15,13 +15,16 @@ from .constants import G0, MU
 _SQRT_MU = math.sqrt(MU)
 
 
-def da_dt(a: float, m: float, rho: float, thrust: float,
-          cd: float, area: float) -> float:
+def da_dt(a, m, rho, thrust, cd, area):
     """Rate of change of semi-major axis, m/s.
 
     PHYSICS.md §3.2:
 
         da/dt = 2*(F/m)*a**1.5/sqrt(MU) - rho*(Cd*A/m)*sqrt(MU*a)
+
+    Every argument may be a scalar or a numpy array. The Monte Carlo propagates
+    the whole 49-satellite ensemble through this one function, so there is no
+    second copy of the equation to drift out of sync (ARCHITECTURE.md §2).
 
     Args:
         a: semi-major axis (== orbital radius, circular), m
@@ -32,11 +35,11 @@ def da_dt(a: float, m: float, rho: float, thrust: float,
         area: ram cross-sectional area A, m^2
     """
     thrust_term = 2.0 * (thrust / m) * a**1.5 / _SQRT_MU
-    drag_term = rho * (cd * area / m) * math.sqrt(MU * a)
+    drag_term = rho * (cd * area / m) * np.sqrt(MU * a)
     return thrust_term - drag_term
 
 
-def dm_dt(thrust: float, isp: float | None) -> float:
+def dm_dt(thrust, isp: float | None):
     """Propellant mass depletion rate, kg/s.
 
     PHYSICS.md §3.2:  dm/dt = -F / (Isp * G0)
@@ -45,25 +48,25 @@ def dm_dt(thrust: float, isp: float | None) -> float:
     physical case; it exists because validation Test 2 (PHYSICS.md §8) requires
     a fixed-mass thrust spiral to compare against the closed-form solution.
 
+    Scalar or array, as `da_dt`.
     """
-    if thrust == 0.0:
-        return 0.0
     if isp is None or not math.isfinite(isp):
-        return 0.0
+        return np.zeros_like(thrust, dtype=float) if np.ndim(thrust) else 0.0
     return -thrust / (isp * G0)
 
 
 def derivatives(
     state: np.ndarray,
-    rho: float,
-    thrust: float,
-    cd: float,
-    area: float,
+    rho,
+    thrust,
+    cd,
+    area,
     isp: float | None = None,
 ) -> np.ndarray:
     """Full state derivative d[a, m]/dt for the RK4 integrator.
 
-    PHYSICS.md §3.2.
+    PHYSICS.md §3.2. `state` is `[a, m]` for a single satellite, or a `(2, n)`
+    array `[a_vector, m_vector]` for an ensemble.
     """
-    a, m = float(state[0]), float(state[1])
+    a, m = state[0], state[1]
     return np.array([da_dt(a, m, rho, thrust, cd, area), dm_dt(thrust, isp)])
