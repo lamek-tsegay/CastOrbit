@@ -413,9 +413,36 @@ class DensityGrid:
         affects the interior stages of the one step that crosses it, and the
         reported reentry time is unaffected to well under a step.
         """
-        h_km = min(max(h_m / 1e3, self.alts_km[0]), self.alts_km[-1])
-        interp = self._interps[self._block_index(t_s)]
-        return float(np.exp(interp((t_s, h_km))))
+        return float(self.lookup(t_s, np.asarray([h_m], dtype=float))[0])
+
+    def lookup(self, t_s: float, h_m: np.ndarray) -> np.ndarray:
+        """Vectorised density lookup: one time, many altitudes.
+
+        Bilinear on log(rho), identical in result to the RegularGridInterpolator
+        built alongside it (asserted in the tests) but without scipy's per-call
+        overhead. The Monte Carlo evaluates this ~10^7 times, once per RK4 stage
+        for the whole ensemble, so the overhead is what actually sets runtime.
+
+        Altitude is clamped to the tabulated range; see `__call__`.
+        """
+        k = self._block_index(t_s)
+        nodes, log_rho = self._nodes[k], self._logrho[k]
+
+        j = int(np.searchsorted(nodes, t_s) - 1)
+        j = min(max(j, 0), nodes.size - 2)
+        span = nodes[j + 1] - nodes[j]
+        wt = 0.0 if span <= 0 else min(max((t_s - nodes[j]) / span, 0.0), 1.0)
+
+        h_km = np.clip(np.asarray(h_m, dtype=float) / 1e3,
+                       self._alt0, self.alts_km[-1])
+        x = (h_km - self._alt0) / self._alt_step
+        i = np.clip(np.floor(x).astype(np.intp), 0, self._n_alt - 2)
+        wh = x - i
+
+        row0, row1 = log_rho[j], log_rho[j + 1]
+        lo = row0[i] * (1.0 - wh) + row0[i + 1] * wh
+        hi = row1[i] * (1.0 - wh) + row1[i + 1] * wh
+        return np.exp(lo * (1.0 - wt) + hi * wt)
 
     def max_relative_error(self, sw: SpaceWeather, n_alt: int = 40) -> float:
         """Largest relative interpolation error against direct pymsis calls.
