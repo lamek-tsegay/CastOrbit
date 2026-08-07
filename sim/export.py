@@ -3,15 +3,17 @@
 ARCHITECTURE.md §6. Two files, deliberately separate rather than one stretched
 schema:
 
-  out/batch.json   one Monte Carlo batch: per-satellite parameters, outcome and
-                   downsampled trajectory, plus the critical-altitude time
-                   series that the altitude chart overlays.
+  out/batch.json   the fleet reproduction: both Cd conventions run side by
+                   side, each satellite tagged with its own effective drag
+                   parameter Cd*A, plus the critical-altitude time series
+                   the altitude chart overlays.
   out/sweeps.json  the three §9 sweep curves.
 
 The Phase 4 gate is that a Python script can read these back and reproduce the
 Phase 3 plots. That is only a real check if the plotting code cannot see the
 in-memory objects, so `sim/sweeps.py` plots from a plain payload dict and
-`replot_sweeps_from_json` feeds it one parsed straight off disk.
+`replot_sweeps_from_json` feeds it one parsed straight off disk; the same
+applies to `replot_batch_from_json` here.
 """
 
 from __future__ import annotations
@@ -31,6 +33,17 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "out"
 
 ATMOSPHERE_MODEL = "NRLMSIS 2.1 via pymsis 0.12.0"
+
+# The two fleet-reproduction conventions compared throughout README.md's
+# central finding: this project's own baseline Cd (satellite_specs.json,
+# aerodynamics.drag_coefficient_baseline) against Baruah et al.'s own
+# validation convention. Both keep the drawn ram area for the whole window
+# (data/event_feb2022.json: 1.00-4.48 m2 IS the safe-mode bounding range, not
+# a nominal-flight range) -- see sim/validate.py:run_fleet.
+FLEET_RUNS = (
+    ("cd2.2", 2.2, "this project's own baseline Cd (aerodynamics convention)"),
+    ("cd1.0", 1.0, "Baruah et al.'s validation convention"),
+)
 
 
 def sim_version() -> str:
@@ -90,7 +103,8 @@ def critical_altitude_series(
             "Counterfactual: the fleet is in safe mode with F = 0, where no "
             "balance point exists. This is the altitude at which the rated "
             "thrust would balance drag if orbit-raising were resumed, i.e. the "
-            "recovery boundary."
+            "recovery boundary, evaluated at this run's own Cd and the "
+            "median drawn ram area."
         ),
         "thrust_n": thrust_n,
         "cd": cd,
@@ -100,25 +114,17 @@ def critical_altitude_series(
     }
 
 
-def export_batch(
-    result,
-    grid,
-    epoch: datetime,
-    scenario: str,
-    cd: float,
-    density_scale: float,
-    insertion_altitude_km: float,
-    target_shell_km: float,
-    thrust_rated_n: float,
-    observed: dict | None = None,
-    path: Path | None = None,
-    sample_stride_s: float = 600.0,
-) -> Path:
-    """Emit one batch to JSON in the ARCHITECTURE.md §6 shape."""
+def _build_run(
+    result, grid, epoch: datetime, label: str, cd: float, description: str,
+    density_scale: float, ram_area_range_m2: tuple[float, float],
+    thrust_rated_n: float, sample_stride_s: float = 600.0,
+) -> dict:
+    """One fleet-reproduction run: config, outcomes, critical altitude, and
+    every satellite's downsampled trajectory tagged with its own Cd*A.
+    """
     batch = result.batch
     t_hist, h_hist = result.t_hist, result.h_hist_km
 
-    # Downsample to ~10 min spacing for display; full resolution stays in Python.
     if t_hist.size > 1:
         step = max(1, int(round(sample_stride_s / (t_hist[1] - t_hist[0]))))
     else:
@@ -135,21 +141,22 @@ def export_batch(
     for k in range(len(batch)):
         outcome = result.outcomes[k]
         t_out = result.outcome_time_s[k]
-        # Trajectory is truncated at the satellite's own termination.
         if np.isfinite(t_out):
             keep = t_ds <= t_out
             if not keep.any():
                 keep[0] = True
         else:
             keep = np.ones(t_ds.size, dtype=bool)
+        area = float(batch.area_m2[k])
         satellites.append({
             "id": k,
             "params": {
                 "mass_kg": round(float(batch.mass_kg[k]), 4),
-                "ram_area_m2": round(float(batch.area_m2[k]), 4),
+                "ram_area_m2": round(area, 4),
+                "cd": round(float(cd), 4),
+                "cd_times_area_m2": round(cd * area, 4),
                 "thrust_n": 0.0,  # safe mode throughout
                 "rated_thrust_n": round(float(batch.thrust_n[k]), 6),
-                "cd": round(float(cd), 4),
                 "insertion_altitude_km": round(
                     float(batch.insertion_altitude_m[k]) / 1e3, 4),
                 "deploy_time_s": round(float(batch.deploy_time_s[k]), 1),
@@ -167,23 +174,15 @@ def export_batch(
         })
 
     counts = result.counts()
-    payload = {
-        "meta": {
-            "scenario": scenario,
-            "generated": datetime.now(timezone.utc).isoformat(),
-            "sim_version": sim_version(),
-            "atmosphere_model": ATMOSPHERE_MODEL,
-            "integrator": "hand-written RK4, fixed step",
-        },
+    lo, hi = ram_area_range_m2
+    return {
+        "label": label,
+        "description": description,
         "config": {
-            "epoch": epoch.isoformat(),
-            "n_satellites": len(batch),
             "cd": cd,
             "density_scale": density_scale,
-            "insertion_altitude_km": insertion_altitude_km,
-            "target_shell_km": target_shell_km,
-            "thruster_mode": "safe_mode for the whole window (F = 0, never exits)",
-            "reentry_altitude_km": 100.0,
+            "ram_area_range_m2": [lo, hi],
+            "effective_drag_range_m2": [round(cd * lo, 4), round(cd * hi, 4)],
         },
         "outcome_counts": counts,
         "critical_altitude": critical_altitude_series(
@@ -191,9 +190,57 @@ def export_batch(
         ),
         "satellites": satellites,
     }
-    if observed is not None:
-        payload["validation"] = observed
 
+
+def export_fleet_batch(sw, path: Path | None = None, dt: float = 30.0) -> Path:
+    """Emit the fleet reproduction, both Cd conventions, to out/batch.json.
+
+    README.md's central finding is that Cd*A is what's actually observable,
+    not Cd or A separately -- so every satellite here carries its own
+    `cd_times_area_m2` rather than making a consumer recompute it, and each
+    run's config states the Cd*A range that run spans. Both runs keep the
+    published, unscaled 1.00-4.48 m2 ram-area range: this file reports what
+    the simulator produces, not the reconciled range solved for in
+    `sim/validate.py:fleet_reproduction` (which is a diagnostic, reported in
+    README.md, not a run of the simulator).
+    """
+    from .montecarlo import THRUST_RATED_N
+    from .validate import FLEET_END, FLEET_LOST, FLEET_N, FLEET_SURVIVED, run_fleet
+
+    grid = None
+    epoch = None
+    runs = []
+    for label, cd, description in FLEET_RUNS:
+        result, grid, t_max, epoch = run_fleet(
+            sw, density_scale=1.0, area_range=(1.00, 4.48), cd=cd, dt=dt, grid=grid,
+        )
+        runs.append(_build_run(
+            result, grid, epoch, label, cd, description,
+            density_scale=1.0, ram_area_range_m2=(1.00, 4.48),
+            thrust_rated_n=THRUST_RATED_N,
+        ))
+
+    payload = {
+        "meta": {
+            "scenario": "fleet_reproduction_feb2022",
+            "generated": datetime.now(timezone.utc).isoformat(),
+            "sim_version": sim_version(),
+            "atmosphere_model": ATMOSPHERE_MODEL,
+            "integrator": "hand-written RK4, fixed step",
+            "epoch": epoch.isoformat(),
+            "window_end": FLEET_END.isoformat(),
+            "n_satellites": FLEET_N,
+            "insertion_altitude_km": 210.0,
+            "reentry_altitude_km": 100.0,
+            "thruster_mode": "safe_mode for the whole window (F = 0, never exits)",
+        },
+        "observed": {
+            "lost": FLEET_LOST,
+            "survived": FLEET_SURVIVED,
+            "source": "data/event_feb2022.json",
+        },
+        "runs": runs,
+    }
     return write_json(path or (OUT / "batch.json"), payload)
 
 
@@ -206,7 +253,12 @@ def replot_sweeps_from_json(path: Path | None = None) -> list[Path]:
 
 
 def replot_batch_from_json(path: Path | None = None) -> Path:
-    """Altitude chart straight from batch.json -- nothing but the file."""
+    """Fleet altitude chart straight from batch.json -- nothing but the file.
+
+    One panel per run, sharing a y-axis, so the two Cd conventions are visually
+    comparable: this is the picture behind "Cd=2.2 loses everyone, Cd=1.0
+    brackets reality" in README.md's central finding.
+    """
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -218,45 +270,55 @@ def replot_batch_from_json(path: Path | None = None) -> Path:
         "PROPELLANT_EXHAUSTED": "#e8a33d",
         "INDETERMINATE": "#8d99ae",
     }
+    epoch = datetime.fromisoformat(payload["meta"]["epoch"])
+    observed = payload.get("observed")
 
-    fig, ax = plt.subplots(figsize=(9.5, 5.5))
-    for sat in payload["satellites"]:
-        tr = sat["trajectory"]
-        ax.plot(np.array(tr["t_s"]) / 3600.0, tr["h_km"],
-                color=colours.get(sat["outcome"], "grey"), lw=0.9, alpha=0.75)
+    runs = payload["runs"]
+    fig, axes = plt.subplots(1, len(runs), figsize=(6.5 * len(runs), 5.5),
+                             sharey=True)
+    if len(runs) == 1:
+        axes = [axes]
 
-    crit = payload["critical_altitude"]
-    t_h = [i * 0 for i in range(0)]  # placeholder, replaced below
-    t_axis = np.array(payload["satellites"][0]["trajectory"]["t_s"])
-    h_crit = np.array([np.nan if v is None else v for v in crit["h_crit_km"]],
-                      dtype=float)
-    n = min(h_crit.size, len(crit["times"]))
-    t_crit = np.linspace(0, t_axis.max() if t_axis.size else 0, n)
-    # The critical-altitude series shares the batch's downsampled time base.
-    t_full = np.array([
-        (datetime.fromisoformat(s) - datetime.fromisoformat(payload["config"]["epoch"])
-         ).total_seconds() for s in crit["times"][:n]
-    ])
-    ax.plot(t_full / 3600.0, h_crit[:n], color="black", lw=1.6, ls="--",
-            label="recovery boundary (critical altitude if thrust resumed)")
+    for ax, run in zip(axes, runs):
+        for sat in run["satellites"]:
+            tr = sat["trajectory"]
+            ax.plot(np.array(tr["t_s"]) / 3600.0, tr["h_km"],
+                    color=colours.get(sat["outcome"], "grey"),
+                    lw=0.9, alpha=0.75)
 
-    ax.axhline(100.0, color="black", lw=0.8, ls=":")
-    ax.text(1, 103, "100 km — unrecoverable", fontsize=8)
-    counts = payload["outcome_counts"]
-    ax.set_title(
-        f"{payload['config']['n_satellites']} satellites, safe mode throughout "
-        f"— Cd = {payload['config']['cd']}, density x{payload['config']['density_scale']}\n"
-        f"{counts.get('REENTERED', 0)} reentered / "
-        f"{payload['config']['n_satellites'] - counts.get('REENTERED', 0)} survived"
-        + (f"  (observed {payload['validation']['lost']}/"
-           f"{payload['validation']['survived']})" if "validation" in payload else ""),
-        fontsize=10,
+        crit = run["critical_altitude"]
+        h_crit = np.array([np.nan if v is None else v for v in crit["h_crit_km"]],
+                          dtype=float)
+        t_crit = np.array([
+            (datetime.fromisoformat(s) - epoch).total_seconds()
+            for s in crit["times"]
+        ])
+        ax.plot(t_crit / 3600.0, h_crit, color="black", lw=1.5, ls="--",
+                label="recovery boundary (Cd*A this run)")
+
+        ax.axhline(100.0, color="black", lw=0.8, ls=":")
+        counts = run["outcome_counts"]
+        lost = counts.get("REENTERED", 0)
+        cfg = run["config"]
+        title = (
+            f"Cd = {cfg['cd']}  (Cd*A ∈ [{cfg['effective_drag_range_m2'][0]:.2f}, "
+            f"{cfg['effective_drag_range_m2'][1]:.2f}] m²)\n"
+            f"{lost} lost / {payload['meta']['n_satellites'] - lost} survived"
+        )
+        if observed:
+            title += f"  (observed {observed['lost']}/{observed['survived']})"
+        ax.set_title(title, fontsize=9.5)
+        ax.set_xlabel(f"hours after {payload['meta']['epoch'][:16].replace('T', ' ')} UT")
+        ax.grid(alpha=0.25, lw=0.5)
+        ax.legend(fontsize=7.5, loc="lower left")
+
+    axes[0].set_ylabel("altitude (km)")
+    axes[0].set_ylim(90, 220)
+    fig.suptitle(
+        f"{payload['meta']['n_satellites']} satellites, safe mode throughout, "
+        "both Cd conventions", fontsize=11,
     )
-    ax.set_xlabel(f"hours after {payload['config']['epoch'][:16].replace('T', ' ')} UT")
-    ax.set_ylabel("altitude (km)")
-    ax.set_ylim(90, 220)
-    ax.grid(alpha=0.25, lw=0.5)
-    ax.legend(fontsize=8, loc="lower left")
+    fig.tight_layout()
     out = OUT / "batch_altitude_from_json.png"
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
