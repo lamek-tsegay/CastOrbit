@@ -11,10 +11,14 @@ what happened.
 
 This is not a satellite tracker or a 3D visualisation of public TLE data. Every
 number below was computed from the equations in [PHYSICS.md](PHYSICS.md) and
-checked against a peer-reviewed result: Baruah, Y., et al. (2024). *The Loss of
+checked against a peer-reviewed result: Baruah, Y., Roy, S., Sinha, S.,
+Palmerio, E., Pal, S., Oliveira, D. M., & Nandy, D. (2024). *The Loss of
 Starlink Satellites in February 2022: How Moderate Geomagnetic Storms Can
 Adversely Affect Assets in Low-Earth Orbit.* Space Weather, 22, e2023SW003716
-([DOI: 10.1029/2023SW003716](https://doi.org/10.1029/2023SW003716)).
+([DOI: 10.1029/2023SW003716](https://doi.org/10.1029/2023SW003716)). Every
+other external source this project cites — the atmosphere model, the space
+weather indices, the satellite hardware figures — is indexed in
+[`docs/SOURCES.md`](docs/SOURCES.md).
 
 ---
 
