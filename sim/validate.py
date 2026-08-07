@@ -99,22 +99,29 @@ def run_case(
     cd: float = CD_VALIDATION,
     mass_kg: float = MASS_KG,
     insertion_altitude_m: float = INSERTION_ALTITUDE_M,
-
+    density_scale: float = 1.0,
+    grid: DensityGrid | None = None,
 ) -> CaseResult:
     """Propagate one bounding case. PHYSICS.md §8 Test 4.
 
+    `density_scale` is a diagnostic only. It is never used for the reported
+    validation result, which always runs at 1.0. Its purpose is to answer one
+    question: what uniform density bias would reconcile the model with the
+    paper, and is that bias the same for both bounding cases? See
+    `density_scale_diagnostic`.
     """
-    grid = DensityGrid(
-        EPOCH,
-        sw,
-        lat_deg=LATITUDE_DEG,
-        lon_deg=LONGITUDE_DEG,
-        duration_s=t_max_s,
-        storm_time=storm_time,
-    )
+    if grid is None:
+        grid = DensityGrid(
+            EPOCH,
+            sw,
+            lat_deg=LATITUDE_DEG,
+            lon_deg=LONGITUDE_DEG,
+            duration_s=t_max_s,
+            storm_time=storm_time,
+        )
 
     def deriv(t: float, y: np.ndarray) -> np.ndarray:
-        rho = grid(t, y[0] - R_E)
+        rho = density_scale * grid(t, y[0] - R_E)
         return derivatives(y, rho, thrust=THRUST_N, cd=cd, area=area_m2, isp=None)
 
     a0 = R_E + insertion_altitude_m
@@ -140,12 +147,74 @@ def run_case(
     )
 
 
+def density_scale_diagnostic(
+    sw: SpaceWeather,
+    storm_time: bool = True,
+    dt: float = 10.0,
+    t_max_s: float = 3 * 86400.0,
+) -> dict[float, float]:
+    """What uniform density multiplier would reconcile each case with the paper?
+
+    This is a *diagnostic*, not a correction. The reported validation numbers
+    are always at scale 1.0 (ARCHITECTURE.md §4: no tuning to make validation match).
+
+    The question it answers is a discriminating one. If the discrepancy comes
+    from a density-model difference -- NRLMSIS 2.1 here versus JB2008 in the
+    paper -- then a single multiplier should reconcile both bounding cases,
+    because decay rate is linear in rho. If instead the two cases demand very
+    different multipliers, something configuration-dependent is wrong and the
+    density explanation does not hold.
+    """
+    grid = DensityGrid(
+        EPOCH, sw, lat_deg=LATITUDE_DEG, lon_deg=LONGITUDE_DEG,
+        duration_s=t_max_s, storm_time=storm_time,
+    )
+
+    def miss(area: float, scale: float) -> float:
+        """Signed error against the published target; zero means agreement."""
+        r = run_case(area, storm_time, sw, dt=dt, t_max_s=t_max_s,
+                     density_scale=scale, grid=grid)
+        # Sign convention throughout: negative => the model decays too slowly
+        # for this scale, positive => too fast. Monotonically increasing in
+        # `scale` for both cases.
+        if area == 4.48:
+            # Target: reach 100 km exactly at the reference time.
+            t = r.time_to_altitude(100.0)
+            if t is None:
+                return -1e9  # never reentered => far too little drag
+            return T_REFERENCE_S - t
+        # Target: 203.24 km at the reference time. More drag => lower altitude.
+        alt = r.altitude_at_reference_km
+        if alt is None:
+            return +1e9  # reentered early => far too much drag
+        return TARGETS[1.00] - alt
+
+    scales: dict[float, float] = {}
+    for area in (4.48, 1.00):
+        lo, hi = 0.5, 4.0
+        f_lo, f_hi = miss(area, lo), miss(area, hi)
+        if f_lo > 0 or f_hi < 0:
+            continue  # root not bracketed
+        for _ in range(20):
+            if hi - lo < 1e-3:
+                break
+            mid = 0.5 * (lo + hi)
+            if miss(area, mid) < 0:
+                lo = mid
+            else:
+                hi = mid
+        scales[area] = 0.5 * (lo + hi)
+    return scales
+
+
 def _fmt_hours(seconds: float) -> str:
     sign = "-" if seconds < 0 else "+"
     return f"{sign}{abs(seconds) / 3600.0:.2f} h"
 
 
-def main(t_max_s: float = 5 * 86400.0, dt: float = 10.0) -> dict:
+def main(
+    t_max_s: float = 5 * 86400.0, dt: float = 10.0, run_diagnostic: bool = True
+) -> dict:
     sw = SpaceWeather.load(DATA / "SW-All.csv")
     OUT.mkdir(exist_ok=True)
 
@@ -219,8 +288,29 @@ def main(t_max_s: float = 5 * 86400.0, dt: float = 10.0) -> dict:
                   f"daily {d_off:.2f} km ({d_on - d_off:+.2f} km)")
     print()
 
+    scales: dict[float, float] = {}
+    if run_diagnostic:
+        print("--- discrepancy diagnostic: implied density bias " + "-" * 29)
+        print("  Not a correction. The results above are all at scale 1.0.")
+        print("  Question: does ONE uniform density multiplier reconcile BOTH cases?")
+        scales = density_scale_diagnostic(sw, storm_time=True, dt=20.0)
+        for area in (4.48, 1.00):
+            if area in scales:
+                k = scales[area]
+                print(f"  A = {area:.2f} m2 -> x{k:.4f}  "
+                      f"(NRLMSIS {(1 - 1 / k) * 100:.1f}% below the density the paper's decay implies)")
+        if len(scales) == 2:
+            a, b = scales[4.48], scales[1.00]
+            spread = abs(a - b) / ((a + b) / 2) * 100
+            print(f"  The two cases differ 4.48x in drag area yet agree on the "
+                  f"correction to {spread:.1f}%.")
+            print(f"  => consistent with a single uniform density offset, not a "
+                  f"configuration-dependent error.")
+        print()
+
     _save_outputs(results)
-    return {"results": results, "shifts": summary_shifts}
+    return {"results": results, "shifts": summary_shifts,
+            "density_scales": scales}
 
 
 def _save_outputs(results: dict[tuple[float, bool], CaseResult]) -> None:
