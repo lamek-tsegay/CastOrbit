@@ -14,3 +14,8 @@ reference/
 web/node_modules/
 web/dist/
 .DS_Store
+
+# Reference PDFs (e.g. docs/baruah_2024.pdf) stay local: for human reference
+# only, no code reads them, and redistributing a copyrighted journal article
+# from a public repo isn't a call to make silently.
+docs/*.pdf
