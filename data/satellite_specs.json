@@ -1,0 +1,173 @@
+{
+  "_comment": "Hardware specifications. Every field carries a source and a confidence tag. Filter for confidence != 'published' to generate the limitations section.",
+
+  "_confidence_levels": {
+    "published": "Stated directly by SpaceX or in a peer-reviewed paper. Trust it.",
+    "derived": "Computed from a published relative claim. Defensible, but must be labelled as derived wherever it appears.",
+    "estimated": "Reasonable inference from geometry or standard convention. Sweep as uncertain.",
+    "disputed": "Sources conflict materially. MUST be swept as a parameter, never assumed."
+  },
+
+  "v1_5": {
+    "_used_for": "February 2022 validation case",
+
+    "mass_kg": {
+      "value": 227.0,
+      "range": [227.0, 303.0],
+      "confidence": "disputed",
+      "source": "Baruah et al. 2024 gives 227 kg; secondary sources give 260-303 kg",
+      "action": "Use 227 kg for validation to match the paper. Sweep the full range for project runs."
+    },
+
+    "ram_area_knife_edge_m2": {
+      "value": 1.00,
+      "range": [0.30, 1.00],
+      "confidence": "estimated",
+      "source": "Baruah et al. 2024 uses 1.00 m2 as lower bound; secondary sources suggest 0.3-0.7 m2",
+      "action": "Use 1.00 m2 for validation. Note that independent sources agree on this value far better than on the nominal-attitude area."
+    },
+
+    "ram_area_nominal_m2": {
+      "value": null,
+      "range": [0.5, 6.0],
+      "confidence": "disputed",
+      "source": "Source A gives 0.5-1.5 m2; Source B gives 5-6 m2. A 4-10x disagreement.",
+      "action": "DO NOT pick a value. This parameter must be swept. Note in the writeup that the Feb 2022 validation does not depend on it, since the satellites were in knife-edge attitude.",
+      "_note": "Source B's own description contradicts its number: it says the array is 'feathered parallel to the velocity vector to minimize drag', which implies a small area."
+    },
+
+    "ram_area_max_m2": {
+      "value": 4.48,
+      "confidence": "published",
+      "source": "Baruah et al. 2024, section 5",
+      "action": "Upper bound for the validation sweep."
+    },
+
+    "thruster_type": {
+      "value": "krypton Hall-effect",
+      "confidence": "published",
+      "source": "SpaceX; SpaceNews 2023-02-28"
+    },
+
+    "thrust_n": {
+      "value": 0.071,
+      "confidence": "derived",
+      "source": "Computed as 0.170 N / 2.4, from SpaceX's claim that the v2 mini thruster produces 2.4x the thrust of the v1.5 unit",
+      "action": "Label as DERIVED wherever it appears. Do not claim SpaceX published this number."
+    },
+
+    "isp_s": {
+      "value": 1666.0,
+      "confidence": "derived",
+      "source": "Computed as 2500 s / 1.5, from SpaceX's claim of 1.5x specific impulse improvement",
+      "action": "Label as DERIVED."
+    },
+
+    "bus_dimensions_m": {
+      "value": [2.8, 1.3],
+      "confidence": "estimated",
+      "source": "Secondary reporting; sources give 2.8x1.3 m and 3.0x1.5 m"
+    }
+  },
+
+  "v2_mini": {
+    "_used_for": "Forward-looking prediction runs",
+
+    "mass_kg": {
+      "value": 800.0,
+      "range": [525.0, 800.0],
+      "confidence": "estimated",
+      "source": "Secondary reporting. 800 kg initial, ~525 kg optimized.",
+      "action": "Sweep the range. Mass strongly affects ballistic coefficient."
+    },
+
+    "ram_area_knife_edge_m2": {
+      "value": 1.35,
+      "range": [1.0, 1.8],
+      "confidence": "estimated",
+      "source": "Two independent sources agree: 1.0-1.8 m2 and 1.2-1.5 m2",
+      "action": "Reasonable agreement between sources. Use midpoint, sweep the range."
+    },
+
+    "ram_area_nominal_m2": {
+      "value": null,
+      "range": [2.5, 12.0],
+      "confidence": "disputed",
+      "source": "Source A gives 2.5-4.0 m2; Source B gives 11-12 m2",
+      "action": "Sweep. Note that Source B's 11-12 m2 is simply the chassis face area (4.1 x 2.7 = 11.07 m2), which is a broadside orientation unlikely to be flown deliberately at low altitude."
+    },
+
+    "thruster_type": {
+      "value": "argon Hall-effect",
+      "confidence": "published",
+      "source": "SpaceX; first operational use of argon for electric propulsion in space"
+    },
+
+    "thrust_n": {
+      "value": 0.170,
+      "confidence": "published",
+      "source": "SpaceX"
+    },
+
+    "isp_s": {
+      "value": 2500.0,
+      "confidence": "published",
+      "source": "SpaceX"
+    },
+
+    "power_kw": {
+      "value": 4.2,
+      "confidence": "published",
+      "source": "SpaceX; quoted at 50% total efficiency"
+    },
+
+    "solar_array_area_m2": {
+      "value": 105.0,
+      "confidence": "published",
+      "source": "Two 52.5 m2 arrays. Both sources agree on 105 m2 total.",
+      "_note": "A figure of 116 m2 appeared in one source without explanation and is not used."
+    },
+
+    "bus_dimensions_m": {
+      "value": [4.1, 2.7],
+      "confidence": "published",
+      "source": "Both sources agree"
+    }
+  },
+
+  "aerodynamics": {
+    "drag_coefficient_baseline": {
+      "value": 2.2,
+      "range": [2.0, 2.4],
+      "confidence": "estimated",
+      "source": "Standard convention for satellites in free-molecular flow. Used in NASA DAS, STK, and orbit determination work.",
+      "action": "Use 2.2 for project runs, sweep 2.0-2.4 in Monte Carlo."
+    },
+
+    "drag_coefficient_validation": {
+      "value": 1.0,
+      "confidence": "published",
+      "source": "Baruah et al. 2024, stated as a simplification for comparative analysis",
+      "action": "MUST be used for the validation case. See PHYSICS.md section 8, Test 4."
+    },
+
+    "_cd_at_higher_altitude": {
+      "value": null,
+      "note": "One source quotes Cd = 2.4-2.45 at ~550 km. That figure is for a different altitude regime with different atmospheric composition and does not apply at 210 km. Not used."
+    }
+  },
+
+  "reference_satellite": {
+    "_comment": "Swarm C, used by Baruah et al. as a comparison case. Useful for a secondary validation.",
+    "name": "Swarm C",
+    "altitude_km": 434.0,
+    "mass_kg": 468.0,
+    "ram_area_m2": 0.7,
+    "drag_coefficient_used": 1.0,
+    "observed_decay_m": 25.02,
+    "decay_window": "2022-02-03T18:13:00Z to 2022-02-06T00:00:00Z",
+    "confidence": "published",
+    "source": "Baruah et al. 2024, section 5",
+    "action": "Optional second validation target. The paper's synthetic ephemeris gave 25.02 m against 23.08 m observed. If time allows, reproducing this is a cheap extra credibility win at a different altitude."
+  }
+}
