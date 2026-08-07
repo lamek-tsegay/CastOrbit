@@ -361,7 +361,7 @@ def run_fleet(
         density_scale=density_scale,
         sample_every=20,
     )
-    return result, grid, t_max
+    return result, grid, t_max, epoch
 
 
 def fleet_reproduction(sw: SpaceWeather, dt: float = 30.0) -> dict:
@@ -381,7 +381,7 @@ def fleet_reproduction(sw: SpaceWeather, dt: float = 30.0) -> dict:
     grid = None
     print("  PRIMARY -- Cd = 2.2 (the project's own convention, PHYSICS.md §8):")
     for scale in (1.00, 1.19):
-        r, grid, t_max = run_fleet(sw, density_scale=scale, cd=2.2, dt=dt, grid=grid)
+        r, grid, t_max, epoch = run_fleet(sw, density_scale=scale, cd=2.2, dt=dt, grid=grid)
         lost = int(np.sum(r.outcomes == Outcome.REENTERED))
         out[("cd2.2", scale)] = {"lost": lost, "survived": FLEET_N - lost}
         print(f"    density x{scale:.2f}:  {lost} lost / {FLEET_N - lost} survived   "
@@ -390,7 +390,7 @@ def fleet_reproduction(sw: SpaceWeather, dt: float = 30.0) -> dict:
 
     print("\n  COMPARISON -- Cd = 1.0 (Baruah et al.'s convention):")
     for scale in (1.00, 1.19):
-        r, _, _ = run_fleet(sw, density_scale=scale, cd=1.0, dt=dt, grid=grid)
+        r, _, _, _ = run_fleet(sw, density_scale=scale, cd=1.0, dt=dt, grid=grid)
         lost = int(np.sum(r.outcomes == Outcome.REENTERED))
         out[("cd1.0", scale)] = {"lost": lost, "survived": FLEET_N - lost}
         print(f"    density x{scale:.2f}:  {lost} lost / {FLEET_N - lost} survived   "
@@ -415,7 +415,7 @@ def fleet_reproduction(sw: SpaceWeather, dt: float = 30.0) -> dict:
             print(f"    density x{scale:.2f}: no scaling of the published range "
                   f"in 0.05-1.0 reproduces 38")
             continue
-        r, _, _ = run_fleet(sw, density_scale=scale, cd=2.2,
+        r, _, _, _ = run_fleet(sw, density_scale=scale, cd=2.2,
                             area_range=(1.00 * k, 4.48 * k), dt=dt, grid=grid)
         got = int(np.sum(r.outcomes == Outcome.REENTERED))
         out[("cd2.2", scale)]["area_scale_for_38"] = k
@@ -468,7 +468,7 @@ def _solve_area_scale(sw, grid, scale, dt, target_lost=FLEET_LOST):
     from .satellite import Outcome
 
     def lost_for(k: float) -> int:
-        r, _, _ = run_fleet(sw, density_scale=scale, cd=2.2,
+        r, _, _, _ = run_fleet(sw, density_scale=scale, cd=2.2,
                             area_range=(1.00 * k, 4.48 * k), dt=dt, grid=grid)
         return int(np.sum(r.outcomes == Outcome.REENTERED))
 
