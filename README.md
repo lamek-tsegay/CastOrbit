@@ -210,8 +210,10 @@ Four validation tests, all passing, live in
 [`tests/test_validation.py`](tests/test_validation.py),
 [`tests/test_baruah.py`](tests/test_baruah.py),
 [`tests/test_atmosphere.py`](tests/test_atmosphere.py) and
-[`tests/test_critical.py`](tests/test_critical.py) — 39 tests total, run with
-`pytest`.
+[`tests/test_critical.py`](tests/test_critical.py). **192 tests total**, run
+with `pytest` — the four validation tests above are the ones that matter, and
+the V2 work (adaptive stepping, geometry, disposal, mass bounds) is held to
+reproducing them unchanged.
 
 ---
 
@@ -423,12 +425,30 @@ questioned and one that doesn't ([`docs/ARCHITECTURE.md` §1](docs/ARCHITECTURE.
    entire model, larger than any other parameter spread swept in §9, and is
    the subject of the central finding above.
 6. **Ram area is inferred, not published.** The 1.00–4.48 m² range comes from
-   Baruah et al.'s own geometric assumptions, not from SpaceX.
+   Baruah et al.'s own geometric assumptions, not from SpaceX. V2's geometry
+   solver derives area from chassis dimensions instead, but those dimensions
+   are themselves `disputed` and `estimated` in the spec file — the solar array
+   chord in particular is assumed equal to the chassis width and is not
+   independently sourced.
 7. **No attitude dynamics.** Attitude is a choice of ram area `A`, not a
    simulated state. Real satellites tumbled.
 8. **Swarm C's orbital inclination is not in this repo's data** and was
    supplied externally (87.4°, published) rather than sourced alongside the
    other validation inputs. See the Swarm C caveat above.
+9. **Disposal Δv is priced on circular orbits.** Because the state excludes
+   eccentricity, the compliance verdict uses a two-burn transfer to a lower
+   circular orbit — the only disposal orbit this engine can propagate. Real
+   operators drop perigee with a single cheaper burn. The verdict is therefore
+   a conservative bound, not an estimate, and adding eccentricity is the
+   highest-value remaining physics extension
+   ([`docs/PHYSICS_V2.md`](docs/PHYSICS_V2.md) §V2.4).
+10. **Multi-year runs hold solar activity constant.** Future space weather is
+   not predictable past the end of `SW-All.csv`, so long-horizon runs sweep
+   low/mean/high activity levels and report a band. Read those as **bounds,
+   not scenarios** — no real 25-year period sits at one level, since the solar
+   cycle is ~11 years.
+11. **Mass estimation is stage 1 only, and fails its gate.** See
+   [Mass estimation that refuses to guess](#mass-estimation-that-refuses-to-guess).
 
 Full list with sourcing: [PHYSICS.md §10](PHYSICS.md#10-known-limitations).
 
@@ -439,7 +459,7 @@ Full list with sourcing: [PHYSICS.md §10](PHYSICS.md#10-known-limitations).
 ```bash
 uv venv --python python3.12 .venv
 uv pip install --python .venv/bin/python pymsis==0.12.0 numpy scipy pytest matplotlib
-.venv/bin/python -m pytest -q                 # 66 tests
+.venv/bin/python -m pytest -q                 # 192 tests
 
 .venv/bin/python -m sim.validate              # Baruah + Swarm C reproduction
 .venv/bin/python -m sim.sweeps                # the three §9 sweeps + validation payload
