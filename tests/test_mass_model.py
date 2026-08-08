@@ -101,52 +101,64 @@ def test_held_out_are_invisible_to_the_interpolator(sats):
 # --------------------------------------------------------------------------
 
 def test_gate_9_held_out_dry_mass(sats, capsys):
-    """**Phase 9 gate:** dry mass of three held-out spacecraft within 25%.
+    """**Phase 9 gate: FAILED, 1 of 3 within 25%.** Recorded, not tuned away.
 
-    Reports every prediction, pass or fail. The table was not adjusted after
-    seeing these numbers.
+    This test is the standing record of that failure. It asserts the outcome
+    that was actually measured -- one resolvable case inside the bar, two
+    refused -- so a later change that appears to "fix" Gate 9 has to come here
+    and say so explicitly rather than passing quietly.
+
+    The response to the failure was to bound the method rather than extend it;
+    `tests/test_bounded.py` covers that. The table was not adjusted.
     """
     rows = score_held_out(sats)
-    n_pass = sum(r["within_25pct"] for r in rows)
+    answered = [r for r in rows if r["resolvable"]]
+    refused = [r for r in rows if not r["resolvable"]]
+    n_within = sum(bool(r["within_25pct"]) for r in answered)
 
     with capsys.disabled():
-        print("\n  GATE 9 -- held-out dry mass, 25% bar")
+        print("\n  GATE 9 -- held-out dry mass, 25% bar: FAIL (1/3)")
         for r in rows:
+            lo, hi = r["interval_kg"]
+            got = (
+                f"{r['predicted_kg']:6.0f} kg ({r['error_frac'] * 100:+.1f}%)"
+                if r["resolvable"] else "refused, no point estimate"
+            )
             print(f"    {r['name'][:26]:26s} actual {r['actual_kg']:6.0f} kg  "
-                  f"predicted {r['predicted_kg']:6.0f} kg  "
-                  f"{r['error_frac'] * 100:+6.1f}%  "
-                  f"{'PASS' if r['within_25pct'] else 'MISS'}")
-            print(f"      {r['estimate']['provenance']}")
-        print(f"    -> {n_pass}/3 within 25%")
+                  f"{got}  range {lo:.0f}-{hi:.0f} kg")
 
-    # Every prediction must be tagged and sourced regardless of accuracy.
+    # Every estimate stays tagged and sourced whether or not it resolves.
     for r in rows:
         assert r["estimate"]["tag"] == "estimated"
         assert len(r["estimate"]["neighbours"]) == 2
         assert r["estimate"]["provenance"]
 
-    assert n_pass >= 1, "the method should at least work where the table is dense"
+    assert n_within == 1, "Gate 9 is recorded as 1/3; this is the record"
+    assert len(refused) == 2
 
 
-def test_the_two_misses_are_explained_not_mysterious(sats, capsys):
-    """A miss is only acceptable if its cause is identified. These are.
+def test_the_two_misses_became_refusals_not_wrong_numbers(sats, capsys):
+    """A miss is only acceptable if its cause is identified. Both are.
 
-    PROBA-V and GOES-16 both miss, for different and diagnosable reasons:
-      * PROBA-V sits in a 42x-wide power bracket, and the population scatter
-        at its power is 2.2x (see `test_population_scatter_bounds_any_...`).
-      * GOES-16 is 0.71 kg/W against neighbours at 0.50 and 0.45 -- an
-        unusually heavy platform for its power, not a modelling error.
+      * PROBA-V: a 42x-wide power bracket, and 3.6x kg/W scatter among
+        comparable spacecraft. Two real spacecraft at 320 and 330 W differ 2.2x
+        in mass, so power alone cannot resolve it -- at any table density.
+      * GOES-16: 0.71 kg/W against neighbours at 0.50 and 0.45. An unusually
+        heavy platform for its power, not an arithmetic error.
+
+    Under the bound both now decline to answer instead of answering wrongly.
     """
     rows = {r["id"]: r for r in score_held_out(sats)}
 
     proba = rows["proba_v"]
-    assert not proba["within_25pct"]
-    assert any("apart in power" in w for w in proba["estimate"]["warnings"]), (
-        "a wide bracket must be flagged on the estimate, not just known here"
-    )
+    assert not proba["resolvable"]
+    assert proba["predicted_kg"] is None
+    assert any(
+        "apart in power" in r for r in proba["estimate"]["refusal_reasons"]
+    ), "the wide bracket must be given as a reason on the estimate itself"
 
     goes = rows["goes_16"]
-    assert not goes["within_25pct"]
+    assert not goes["resolvable"]
     actual_ratio = goes["actual_kg"] / goes["power_w"]
     neighbour_ratios = [n["kg_per_w"] for n in goes["estimate"]["neighbours"]]
     with capsys.disabled():
@@ -207,12 +219,29 @@ def test_estimate_is_bracketed_by_its_neighbours():
 
 
 def test_more_power_never_means_less_mass():
-    """Monotonicity. A design tool that got this backwards would be worse than useless."""
-    masses = [
-        estimate_dry_mass(p, "earth_observation").mass_kg
+    """Monotonicity. A design tool that got this backwards would be worse than useless.
+
+    Checked on the interval rather than the point estimate, since most powers
+    now decline to produce one -- and the interval is the thing a caller always
+    gets, so it is the thing that has to behave.
+    """
+    intervals = [
+        estimate_dry_mass(p, "earth_observation").interval_kg
         for p in (100.0, 500.0, 1500.0, 3000.0)
     ]
-    assert masses == sorted(masses)
+    assert [lo for lo, _ in intervals] == sorted(lo for lo, _ in intervals)
+    assert [hi for _, hi in intervals] == sorted(hi for _, hi in intervals)
+
+
+def test_estimates_that_do_resolve_are_still_monotone():
+    """Where a point estimate survives the bound, it must order correctly too."""
+    points = []
+    for p in (900.0, 1200.0, 1700.0, 2400.0):
+        est = estimate_dry_mass(p, "earth_observation")
+        if est.resolvable:
+            points.append(est.mass_kg)
+    assert len(points) >= 2, "no resolvable cases left to check ordering on"
+    assert points == sorted(points)
 
 
 def test_extrapolation_is_flagged_not_silent():

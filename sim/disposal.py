@@ -287,6 +287,27 @@ class Compliance(Enum):
     NON_COMPLIANT_NO_SOLUTION = "NON_COMPLIANT_NO_SOLUTION"
     OUT_OF_SCOPE = "OUT_OF_SCOPE"
 
+    # The mass this verdict would rest on could not be resolved (Gate 9), so
+    # there is no verdict. Distinct from every outcome above: those are answers,
+    # this is a refusal to answer. `ComplianceResult.renderable` is False for it
+    # so a UI cannot show it as though it were a result.
+    NOT_ASSESSABLE = "NOT_ASSESSABLE"
+
+    # Compliance flips between the ends of the input uncertainty. Also not a
+    # verdict -- the honest output is "this design is not determined either way
+    # by what we know".
+    AMBIGUOUS = "AMBIGUOUS"
+
+
+#: Verdicts that are answers. Anything else must not be presented as one.
+DECIDED_VERDICTS = frozenset({
+    Compliance.COMPLIANT_NATURAL,
+    Compliance.COMPLIANT_WITH_DISPOSAL,
+    Compliance.NON_COMPLIANT_INSUFFICIENT_PROPELLANT,
+    Compliance.NON_COMPLIANT_NO_SOLUTION,
+    Compliance.OUT_OF_SCOPE,
+})
+
 
 @dataclass
 class ComplianceResult:
@@ -312,9 +333,21 @@ class ComplianceResult:
     margin_note: str = ""
     notes: list[str] = field(default_factory=list)
 
+    @property
+    def renderable(self) -> bool:
+        """Whether a UI may present this as a verdict.
+
+        False for NOT_ASSESSABLE and AMBIGUOUS. A compliance verdict resting on
+        a mass the model could not resolve is not a weak verdict, it is not a
+        verdict, and showing it next to the ones that are would be the single
+        most misleading thing this tool could do.
+        """
+        return self.verdict in DECIDED_VERDICTS
+
     def as_dict(self) -> dict:
         return {
             "verdict": self.verdict.value,
+            "renderable": self.renderable,
             "rule": {
                 "id": self.rule_id,
                 "label": self.rule_label,

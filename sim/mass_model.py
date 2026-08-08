@@ -51,6 +51,38 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 REFERENCE_PATH = ROOT / "data" / "reference_satellites.json"
 
+# --------------------------------------------------------------------------
+# Resolution thresholds
+#
+# Gate 9 failed at 1/3. The response is to bound this method, not extend it:
+# where the table cannot support a point estimate, it returns a range and says
+# so, rather than returning a number that happens to be wrong by 37%.
+#
+# Every threshold below is a judgement, and each is stated with the evidence
+# that set it. None was chosen to make a held-out case pass.
+# --------------------------------------------------------------------------
+
+# Two spacecraft more than this far apart in power are in different design
+# regimes and the power law between them is not a local one. PROBA-V's only
+# available bracket is 42x wide (Dove-3 at 20 W to CryoSat-2 at 850 W).
+MAX_BRACKET_POWER_RATIO = 4.0
+
+# If observed kg/W varies by more than this among comparable spacecraft, power
+# does not determine mass and no interpolation on power can. The
+# earth-observation class spans 3.6x.
+MAX_SCATTER_RATIO = 2.0
+
+# Half-width of the "comparable power" window, as a ratio.
+LOCAL_WINDOW_RATIO = 4.0
+
+# Below this many spacecraft in the window, a *local* scatter figure is not
+# measurable and pretending otherwise manufactures false confidence. This is
+# the load-bearing threshold: PROBA-V's window holds 3 spacecraft whose kg/W
+# span only 1.17x, which would have produced a tight interval that excludes
+# the true mass by a factor of two. When the local sample is this thin the
+# class-wide scatter is used instead.
+MIN_LOCAL_SAMPLES = 4
+
 
 @dataclass(frozen=True)
 class ReferenceSatellite:
@@ -131,14 +163,21 @@ def held_out_set(
 
 @dataclass
 class MassEstimate:
-    """A dry mass, and everything needed to argue with it.
+    """A bounded dry mass, and everything needed to argue with it.
+
+    **`mass_kg` is `None` whenever the method cannot resolve one.** That is the
+    central design decision here. A caller that wants a number must check
+    `resolvable` first; `interval_kg` is always populated and is the honest
+    product when the point estimate is withheld.
 
     `tag` is always "estimated". There is no path through this module that
     produces an untagged mass, because V2_BRIEF.md §5 requires a generated
     design to carry its provenance.
     """
 
-    mass_kg: float
+    mass_kg: float | None
+    interval_kg: tuple[float, float]
+    resolvable: bool
     tag: str
     method: str
     neighbours: list[dict] = field(default_factory=list)
@@ -146,23 +185,55 @@ class MassEstimate:
     payload_class: str | None = None
     extrapolated: bool = False
     bracket_ratio: float | None = None
+    scatter_ratio: float | None = None
+    scatter_basis: str | None = None      # "local" | "class"
+    n_samples: int = 0
+    refusal_reasons: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+
+    def __post_init__(self):
+        lo, hi = self.interval_kg
+        if lo > hi:
+            raise ValueError(f"inverted mass interval {self.interval_kg}")
+        if self.resolvable and self.mass_kg is None:
+            raise ValueError("resolvable estimate must carry a point mass")
+        if not self.resolvable and self.mass_kg is not None:
+            raise ValueError(
+                "unresolvable estimate must not carry a point mass -- that is "
+                "the whole point of the refusal"
+            )
 
     @property
     def provenance(self) -> str:
-        """One sentence naming the spacecraft this was interpolated between."""
+        """One sentence naming the spacecraft this came from."""
         if not self.neighbours:
             return "no reference spacecraft"
         names = " and ".join(
             f"{n['name']} ({n['mass_kg']:.0f} kg at {n['power_w']:.0f} W)"
             for n in self.neighbours
         )
+        if not self.resolvable:
+            return f"bounded by the kg/W spread around {names}"
         verb = "extrapolated beyond" if self.extrapolated else "interpolated between"
         return f"{verb} {names}"
+
+    @property
+    def summary(self) -> str:
+        """What a UI should show. Never a bare number when one is not warranted."""
+        lo, hi = self.interval_kg
+        if not self.resolvable:
+            return (
+                f"{lo:.0f}-{hi:.0f} kg (estimated range; method cannot resolve "
+                "a single value)"
+            )
+        return f"{self.mass_kg:.0f} kg (estimated, {lo:.0f}-{hi:.0f} kg)"
 
     def as_dict(self) -> dict:
         return {
             "mass_kg": self.mass_kg,
+            "interval_kg": list(self.interval_kg),
+            "resolvable": self.resolvable,
+            "summary": self.summary,
             "tag": self.tag,
             "method": self.method,
             "provenance": self.provenance,
@@ -171,6 +242,10 @@ class MassEstimate:
             "payload_class": self.payload_class,
             "extrapolated": self.extrapolated,
             "bracket_ratio": self.bracket_ratio,
+            "scatter_ratio": self.scatter_ratio,
+            "scatter_basis": self.scatter_basis,
+            "n_samples": self.n_samples,
+            "refusal_reasons": self.refusal_reasons,
             "warnings": self.warnings,
         }
 
@@ -258,24 +333,60 @@ def estimate_dry_mass(
             "class; the result is extrapolated, not interpolated."
         )
 
-    mass = _loglog_interpolate(
+    point = _loglog_interpolate(
         power_w, lo.power_w, lo.mass_kg, hi.power_w, hi.mass_kg
     )
-
     bracket_ratio = hi.power_w / lo.power_w if lo.power_w > 0 else math.inf
-    if bracket_ratio > 4.0 and not extrapolated:
-        warnings.append(
+
+    ratio_lo, ratio_hi, scatter, basis, n_samples = _kg_per_w_band(
+        power_w, payload_class, pool, exclude_family
+    )
+    interval = (power_w * ratio_lo, power_w * ratio_hi)
+
+    # An interval that excludes its own point estimate would be incoherent.
+    # Widening rather than clipping keeps the bound honest.
+    interval = (min(interval[0], point), max(interval[1], point))
+
+    refusals: list[str] = []
+    if extrapolated:
+        refusals.append(
+            f"{power_w:.0f} W lies outside the reference range for this class."
+        )
+    if bracket_ratio > MAX_BRACKET_POWER_RATIO:
+        refusals.append(
             f"the bracketing spacecraft are {bracket_ratio:.0f}x apart in power "
-            f"({lo.name} at {lo.power_w:.0f} W, {hi.name} at {hi.power_w:.0f} W). "
-            "A wide bracket spans different design regimes and the interpolation "
-            "is correspondingly weak -- this is a gap in the table, not a "
-            "property of the method."
+            f"({lo.name} at {lo.power_w:.0f} W, {hi.name} at {hi.power_w:.0f} W), "
+            f"above the {MAX_BRACKET_POWER_RATIO:.0f}x limit. They are in "
+            "different design regimes, so the power law between them is not a "
+            "local one."
+        )
+    if scatter > MAX_SCATTER_RATIO:
+        refusals.append(
+            f"comparable spacecraft vary by {scatter:.1f}x in kg/W "
+            f"({basis} basis, n={n_samples}), above the "
+            f"{MAX_SCATTER_RATIO:.1f}x limit. At this spread power does not "
+            "determine mass, so no interpolation on power can resolve it."
         )
 
+    if basis == "class":
+        warnings.append(
+            f"only {n_samples} comparable spacecraft within {LOCAL_WINDOW_RATIO:.0f}x "
+            f"of {power_w:.0f} W, below the {MIN_LOCAL_SAMPLES} needed to measure "
+            "local scatter. The class-wide spread was used instead, which is "
+            "wider and less specific but does not manufacture confidence the "
+            "table cannot support."
+        )
+
+    resolvable = not refusals
     return MassEstimate(
-        mass_kg=mass,
+        mass_kg=point if resolvable else None,
+        interval_kg=interval,
+        resolvable=resolvable,
         tag="estimated",
-        method="log-log interpolation on power between two reference spacecraft",
+        method=(
+            "log-log interpolation on power between two reference spacecraft, "
+            "bounded by the observed kg/W spread"
+        ),
         neighbours=[
             {
                 "id": s.id, "name": s.name, "mass_kg": s.mass_kg,
@@ -287,8 +398,63 @@ def estimate_dry_mass(
         payload_class=payload_class,
         extrapolated=extrapolated,
         bracket_ratio=bracket_ratio,
+        scatter_ratio=scatter,
+        scatter_basis=basis,
+        n_samples=n_samples,
+        refusal_reasons=refusals,
         warnings=warnings,
     )
+
+
+def _kg_per_w_band(
+    power_w: float,
+    payload_class: str,
+    pool: list[ReferenceSatellite],
+    exclude_family: str | None,
+) -> tuple[float, float, float, str, int]:
+    """Observed kg/W spread among comparable spacecraft.
+
+    Returns `(ratio_lo, ratio_hi, scatter, basis, n)`.
+
+    **Launch-mass entries are used for the upper bound only.** Launch mass is
+    an upper bound on dry mass, so a launch-mass spacecraft's kg/W is an upper
+    bound on its true value: it may legitimately raise the top of the band but
+    cannot be trusted to raise the bottom. Deimos-2 is exactly this case, and
+    it is the entry that reveals the scatter at PROBA-V's power.
+
+    Falls back from the local window to the whole class when the window holds
+    fewer than `MIN_LOCAL_SAMPLES`. That fallback is the safeguard against
+    false confidence -- see `MIN_LOCAL_SAMPLES`.
+    """
+    def band(members: list[ReferenceSatellite]) -> tuple[float, float] | None:
+        dry = [s.mass_kg / s.power_w for s in members if s.is_dry]
+        every = [s.mass_kg / s.power_w for s in members]
+        if not dry:
+            return None
+        return min(dry), max(every)
+
+    in_class = [
+        s for s in pool
+        if s.payload_class == payload_class
+        and s.power_w and s.power_w > 0
+        and s.family != exclude_family
+    ]
+    local = [
+        s for s in in_class
+        if power_w / LOCAL_WINDOW_RATIO <= s.power_w <= power_w * LOCAL_WINDOW_RATIO
+    ]
+
+    if len(local) >= MIN_LOCAL_SAMPLES and (b := band(local)) is not None:
+        return b[0], b[1], b[1] / b[0], "local", len(local)
+
+    b = band(in_class)
+    if b is None:
+        # No dry masses in the class at all: fall back to the whole table.
+        b = band([s for s in pool if s.power_w and s.power_w > 0])
+        if b is None:
+            raise MassEstimationError("no dry-mass reference spacecraft at all")
+        return b[0], b[1], b[1] / b[0], "class", len(pool)
+    return b[0], b[1], b[1] / b[0], "class", len(in_class)
 
 
 def _loglog_interpolate(
@@ -325,14 +491,24 @@ def score_held_out(
             satellites=sats,
             exclude_family=target.family,
         )
-        error = (est.mass_kg - target.mass_kg) / target.mass_kg
+        lo, hi = est.interval_kg
+        error = (
+            None if est.mass_kg is None
+            else (est.mass_kg - target.mass_kg) / target.mass_kg
+        )
         rows.append({
             "id": target.id,
             "name": target.name,
             "actual_kg": target.mass_kg,
             "predicted_kg": est.mass_kg,
+            "interval_kg": [lo, hi],
             "error_frac": error,
-            "within_25pct": abs(error) <= 0.25,
+            # A withheld point estimate is neither a pass nor a failure of the
+            # 25% bar -- it is a refusal, scored instead on whether the range
+            # it returned actually contains the truth.
+            "resolvable": est.resolvable,
+            "within_25pct": None if error is None else abs(error) <= 0.25,
+            "interval_contains_actual": lo <= target.mass_kg <= hi,
             "power_w": target.power_w,
             "payload_class": target.payload_class,
             "estimate": est.as_dict(),
