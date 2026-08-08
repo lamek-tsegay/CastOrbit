@@ -33,7 +33,7 @@ import numpy as np
 from .atmosphere import DensityGrid, SpaceWeather
 from .constants import R_E
 from .dynamics import derivatives
-from .integrator import propagate
+from .integrator import propagate, propagate_adaptive
 from .satellite import Outcome
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -64,6 +64,7 @@ class CaseResult:
     reentry_time_s: float | None
     t_s: np.ndarray = field(repr=False)
     h_km: np.ndarray = field(repr=False)
+    stats: object | None = field(default=None, repr=False)  # StepStats if adaptive
 
     @property
     def reentry_time_utc(self) -> datetime | None:
@@ -101,6 +102,9 @@ def run_case(
     insertion_altitude_m: float = INSERTION_ALTITUDE_M,
     density_scale: float = 1.0,
     grid: DensityGrid | None = None,
+    adaptive: bool = False,
+    tol: float = 1e-4,
+    dt_max: float = 1800.0,
 ) -> CaseResult:
     """Propagate one bounding case. PHYSICS.md §8 Test 4.
 
@@ -109,6 +113,17 @@ def run_case(
     question: what uniform density bias would reconcile the model with the
     paper, and is that bias the same for both bounding cases? See
     `density_scale_diagnostic`.
+
+    `adaptive=True` swaps the fixed-step driver for the variable-step one
+    (V2_BRIEF.md §4) with everything else held identical, which is what makes
+    the two directly comparable in `tests/test_baruah.py`. The reported V1
+    numbers stay on the fixed-step path; `dt` is ignored when `adaptive` is
+    set, and `tol`/`dt_max` are ignored when it is not.
+
+    `dt_max` defaults to the density grid's own 1800 s node spacing. A step
+    longer than that would jump between interpolation nodes, so the cap keeps
+    the integrator resolving the atmosphere it was given rather than sampling
+    past it.
     """
     if grid is None:
         grid = DensityGrid(
@@ -125,7 +140,13 @@ def run_case(
         return derivatives(y, rho, thrust=THRUST_N, cd=cd, area=area_m2, isp=None)
 
     a0 = R_E + insertion_altitude_m
-    traj = propagate(deriv, np.array([a0, mass_kg]), dt=dt, t_max=t_max_s)
+    y0 = np.array([a0, mass_kg])
+    if adaptive:
+        traj = propagate_adaptive(
+            deriv, y0, t_max=t_max_s, tol=tol, dt_max=dt_max
+        )
+    else:
+        traj = propagate(deriv, y0, dt=dt, t_max=t_max_s)
 
     h_km = traj.h_km
     t_s = traj.t_s
@@ -144,6 +165,7 @@ def run_case(
         ),
         t_s=t_s,
         h_km=h_km,
+        stats=traj.stats,
     )
 
 

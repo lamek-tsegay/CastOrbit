@@ -76,6 +76,55 @@ def test_1_00_case_decays_about_five_and_a_half_km(sw, capsys):
     assert abs(err) < 0.20, "decay now exceeds the 20% acceptance in PHYSICS.md §8"
 
 
+@pytest.mark.parametrize("area_m2", [4.48, 1.00])
+def test_adaptive_reproduces_the_fixed_step_result(sw, area_m2, capsys):
+    """**The Phase 7 gate.** V2_BRIEF.md §4: within 0.1% of the V1 values.
+
+    This is the test that licenses variable stepping. The V1 fixed-step
+    numbers are the validated ones; if the adaptive driver cannot reproduce
+    them against the real atmosphere and real space weather, it does not get
+    used, however good it looks on an analytic problem.
+
+    Both drivers share `rk4_step`, `derivatives` and the same `DensityGrid`
+    instance here, so the only difference between them is the choice of `dt`.
+    """
+    t_max = 3 * 86400.0
+    fixed = run_case(area_m2, storm_time=True, sw=sw, t_max_s=t_max)
+    adaptive = run_case(area_m2, storm_time=True, sw=sw, t_max_s=t_max,
+                        adaptive=True, tol=1e-4)
+
+    assert adaptive.outcome == fixed.outcome
+
+    if fixed.reentry_time_s is not None:
+        metric = "reentry time"
+        err = abs(adaptive.reentry_time_s - fixed.reentry_time_s) / fixed.reentry_time_s
+        got, ref = adaptive.reentry_time_s, fixed.reentry_time_s
+    else:
+        metric = "altitude at reference"
+        got = adaptive.altitude_at_reference_km
+        ref = fixed.altitude_at_reference_km
+        err = abs(got - ref) / ref
+
+    n_fixed = fixed.t_s.size
+    n_adaptive = adaptive.stats.n_accepted
+    with capsys.disabled():
+        print(f"  Gate 7 (A={area_m2} m2): {metric} {got:.4f} vs fixed-step "
+              f"{ref:.4f}  ->  {err * 100:.4f}% "
+              f"({n_adaptive} adaptive steps vs {n_fixed} fixed, "
+              f"{n_fixed / n_adaptive:.0f}x fewer)")
+
+    assert err < 1e-3, (
+        f"adaptive differs from the validated fixed-step result by "
+        f"{err * 100:.4f}%, above the 0.1% gate"
+    )
+    assert adaptive.stats.tolerance_respected, (
+        "steps hit the dt floor; the tolerance was not actually met"
+    )
+    assert n_adaptive < n_fixed / 50, (
+        f"only {n_fixed / n_adaptive:.0f}x fewer steps -- not worth the machinery"
+    )
+
+
 def test_storm_time_changes_timing_by_under_an_hour(sw, capsys):
     """3-hourly ap vs daily Ap barely moves the integrated result.
 
