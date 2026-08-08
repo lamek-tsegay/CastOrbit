@@ -346,3 +346,64 @@ degeneracy rather than document it.
   ~11 m end-to-end figure; chord is assumed equal to the chassis width and is
   not independently sourced. It is tagged `estimated` and swept.
 - **Rigid plates.** No panel flexure.
+
+---
+
+## V2.7 Stage-1 mass closure (Phase 9)
+
+Not physics — an empirical interpolation, recorded here because it feeds the
+ballistic coefficient and therefore every decay number downstream.
+
+`data/reference_satellites.json` holds 20 sourced spacecraft from 5.2 kg
+(Planet Dove, 3U CubeSat) to 3650 kg (ViaSat-1), across LEO and GEO and across
+communications and instrument payloads. `sim/mass_model.py` estimates dry mass
+by log-log interpolation on electrical power between the two bracketing
+entries. Nothing is fitted; no coefficient appears in the module.
+
+**Matching rules:** same payload class first (comsats are ~3× lighter per watt
+than instrument platforms), never the same family (predicting GOES-16 from
+GOES-17 would be interpolating a satellite from its twin), dry masses only
+(launch mass is nearly double dry mass at GEO).
+
+### Gate 9 result: 1 of 3 within 25%
+
+Held-out set fixed before any prediction: one per size class, each with
+published dry mass and published power.
+
+| Spacecraft | Actual | Predicted | Error | |
+|---|---|---|---|---|
+| PROBA-V | 140 kg | 192 kg | **+37.0%** | miss |
+| Sentinel-2 | 1016 kg | 1018 kg | **+0.2%** | pass |
+| GOES-16 | 2857 kg | 1863 kg | **−34.8%** | miss |
+
+The table was not adjusted after seeing these. Both misses have identified
+causes, and they are different causes.
+
+**PROBA-V — the predictor's ceiling, not the method's failure.** The only
+dry-mass entries bracketing 320 W are Dove at 20 W and CryoSat-2 at 850 W, a
+42× bracket spanning two design regimes. But filling that gap would not fix
+it: PROBA-V (320 W, 140 kg) and Deimos-2 (330 W, 310 kg) are real spacecraft
+at *essentially identical power* whose masses differ by **2.2×**. No predictor
+taking power alone can distinguish them. Across the earth-observation class,
+kg/W spans 0.26–0.94, a 3.6× spread. A 25% bar is therefore unreachable at the
+small end by any power-only interpolation, however dense the table.
+
+**GOES-16 — a genuinely heavy platform.** At 0.714 kg/W it is heavier per watt
+than both its neighbours (Himawari-8 at 0.500, Sentinel-1 at 0.452). It carries
+a six-instrument suite on a GEO bus rated for 15 years. The interpolation picks
+up a mild downward trend in kg/W with power and extends it; GOES-16 bucks that
+trend. This is a population outlier, not an arithmetic error.
+
+### What this means for Stage 2
+
+Power alone is sufficient in the mid-range and insufficient at both extremes.
+That is the specific, quantified case for the component-level MERs that
+`V2_BRIEF.md` §5 defers to Stage 2 — and the argument is now measured rather
+than assumed. A second predictor that separates design regimes (payload mass
+fraction, or bus volume where a stowed envelope is actually published) would
+do more than any amount of additional table entries.
+
+**Do not read the 0.2% on Sentinel-2 as accuracy.** It is one draw from a
+distribution whose spread is 3.6×; the table happened to bracket it tightly
+with two spacecraft of the same design regime. The honest summary of Stage 1
+is "±35% at the extremes, better where the table is dense", not "±25%".
