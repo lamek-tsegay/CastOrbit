@@ -32,6 +32,7 @@ from .satellite import Outcome
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "out"
+DATA_DIR = ROOT / "data"
 
 ATMOSPHERE_MODEL = "NRLMSIS 2.1 via pymsis 0.12.0"
 
@@ -336,3 +337,19 @@ def replot_batch_from_json(path: Path | None = None) -> Path:
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     return out
+
+
+def main() -> Path:
+    """CLI entry point: `python -m sim.export` writes out/batch.json.
+
+    out/sweeps.json is written by `python -m sim.sweeps` instead, since it
+    also needs the sweep grids that module already owns.
+    """
+    from .atmosphere import SpaceWeather
+
+    sw = SpaceWeather.load(DATA_DIR / "SW-All.csv")
+    return export_fleet_batch(sw)
+
+
+if __name__ == "__main__":
+    main()
