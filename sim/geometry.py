@@ -496,3 +496,57 @@ def geometry_from_spec(
         )
 
     return Geometry(parts, label=f"{variant}:{which}{'' if include_array else ':bus-only'}")
+
+
+# --------------------------------------------------------------------------
+# Geometry -> physics
+# --------------------------------------------------------------------------
+
+def ram_area_for_mode(geometry: Geometry, mode: "ThrusterMode") -> float:
+    """The ram area `A` to hand `PHYSICS.md` §3.2, derived from the shape.
+
+    **This function is the point of Phase 8.** In V1, `A` was an assumed
+    parameter swept across a disputed 1.00-4.48 m^2 range. Here it is a
+    consequence of the geometry and the commanded attitude, so one of the
+    three inseparable factors in `rho*Cd*A` is pinned by construction
+    (V2_BRIEF.md §2).
+
+    The attitude mapping follows PHYSICS.md §5:
+
+      * `SAFE_MODE`  -> the minimum-area attitude. This is not a modelling
+        convenience: SpaceX commanded knife-edge precisely to minimise this
+        number, and the February 2022 reproduction only works because of it.
+      * `NOMINAL`    -> face-on to the flow. Operating attitude is set by
+        pointing requirements, not by drag, and for a flat-panel bus with a
+        coplanar array the operational orientation presents the panel face.
+
+    `NOMINAL` is therefore a *conservative* choice rather than a measured one:
+    it is the honest upper bound for an attitude this model does not simulate
+    (attitude dynamics are excluded by PHYSICS.md §1). Sweep it if the answer
+    depends on it.
+    """
+    from .satellite import ThrusterMode  # local import: avoids a cycle
+
+    if mode is ThrusterMode.SAFE_MODE:
+        return geometry.knife_edge_area()[0]
+    if mode is ThrusterMode.NOMINAL:
+        return geometry.broadside_area()[0]
+    raise ValueError(f"no attitude convention defined for {mode!r}")
+
+
+def area_range_from_spec(specs: dict, variant: str = "v1_5") -> tuple[float, float]:
+    """Widest `(knife_edge, broadside)` across the whole swept dimension range.
+
+    The bounds any attitude and any sourced dimension can produce. Reported
+    rather than a single number because the underlying dimensions are tagged
+    `disputed` and `estimated` -- "uncertain values get swept, not chosen".
+    """
+    lo = min(
+        geometry_from_spec(specs, variant, which=w).knife_edge_area()[0]
+        for w in ("min", "value", "max")
+    )
+    hi = max(
+        geometry_from_spec(specs, variant, which=w).broadside_area()[0]
+        for w in ("min", "value", "max")
+    )
+    return lo, hi

@@ -297,3 +297,82 @@ def test_spec_sweep_selects_range_ends(specs):
     hi = geometry_from_spec(specs, which="max").parts[0]
     assert hi.length_m > lo.length_m
     assert hi.thickness_m > lo.thickness_m
+
+
+# --------------------------------------------------------------------------
+# Geometry -> physics: the degeneracy attacked from the geometry side
+# --------------------------------------------------------------------------
+
+def test_geometry_knife_edge_matches_the_secondary_sources_not_baruah(specs, capsys):
+    """The solver lands on 0.27-0.61 m^2, the *secondary* knife-edge range.
+
+    `satellite_specs.json` records two disagreeing claims for the knife-edge
+    area: Baruah's 1.00 m^2 lower bound, and secondary sources at 0.3-0.7 m^2.
+    Built independently from chassis dimensions and a published end-to-end
+    span, the solver reproduces the secondary range and sits well below
+    Baruah's figure.
+
+    That is not a contradiction with V1. Baruah's 1.00 m^2 is a stated *lower
+    bound* on a swept range, not a measurement, and V1 validated against the
+    paper's own convention deliberately.
+    """
+    lo = min(geometry_from_spec(specs, which=w).knife_edge_area()[0]
+             for w in ("min", "value", "max"))
+    hi = max(geometry_from_spec(specs, which=w).knife_edge_area()[0]
+             for w in ("min", "value", "max"))
+    with capsys.disabled():
+        print(f"\n  geometry knife-edge {lo:.3f}-{hi:.3f} m2 vs "
+              f"secondary sources 0.3-0.7 m2, Baruah 1.00 m2")
+
+    assert hi < PUBLISHED_KNIFE_EDGE_M2
+    # Overlaps the 0.3-0.7 secondary range rather than merely being small.
+    assert lo < 0.7 and hi > 0.3
+
+
+def test_effective_drag_parameter_converges_with_baruah(specs, capsys):
+    """A fourth line of evidence on `Cd*A`, reached from geometry.
+
+    The README's central finding is that only the product `rho*Cd*A` is
+    observable from a decay curve, and that three independent diagnostics put
+    it in the same place. This is a fourth, and the first that does not use a
+    decay curve at all:
+
+        Baruah:              Cd = 1.0  x  A = 1.00 m^2       = 1.00 m^2
+        geometry + standard: Cd = 2.2  x  A = 0.405 m^2      = 0.89 m^2
+
+    Two different splits of an unobservable product -- the paper's stated
+    simplification versus this project's free-molecular convention applied to
+    a solved geometry -- landing 11% apart. Exactly the degeneracy V2_BRIEF.md
+    §2 says pinning `A` from geometry should attack.
+    """
+    cd_standard = 2.2
+    baruah_cd_a = 1.0 * PUBLISHED_KNIFE_EDGE_M2
+
+    areas = [geometry_from_spec(specs, which=w).knife_edge_area()[0]
+             for w in ("min", "value", "max")]
+    band = [cd_standard * a for a in areas]
+    nominal = cd_standard * areas[1]
+
+    with capsys.disabled():
+        print(f"\n  Baruah  Cd*A = {baruah_cd_a:.3f} m2")
+        print(f"  geometry Cd*A = {min(band):.3f}-{max(band):.3f} m2 "
+              f"(nominal {nominal:.3f})  ->  {abs(nominal - baruah_cd_a) / baruah_cd_a * 100:.1f}% apart")
+
+    assert min(band) <= baruah_cd_a <= max(band), (
+        "the geometry-derived effective drag range should bracket Baruah's"
+    )
+    assert abs(nominal - baruah_cd_a) / baruah_cd_a < 0.25
+
+
+def test_ram_area_for_mode_maps_attitude_to_area(specs):
+    """PHYSICS.md §5: safe mode is the minimum-area attitude, by definition."""
+    from sim.geometry import ram_area_for_mode
+    from sim.satellite import ThrusterMode
+
+    g = geometry_from_spec(specs)
+    safe = ram_area_for_mode(g, ThrusterMode.SAFE_MODE)
+    nominal = ram_area_for_mode(g, ThrusterMode.NOMINAL)
+
+    assert safe == pytest.approx(g.knife_edge_area()[0])
+    assert nominal == pytest.approx(g.broadside_area()[0])
+    assert safe < nominal
