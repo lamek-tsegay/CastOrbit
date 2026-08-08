@@ -12,7 +12,7 @@ integrating anything.
 
 **Validation.** Reproduces the February 2022 Starlink loss against Baruah et
 al. (2024): **+18.2%** and **−18.5%** decay-timing error on the two published
-bounding cases, both inside the paper's own 20% acceptance band. 192 tests.
+bounding cases, both inside the paper's own 20% acceptance band. 267 tests.
 That reproduction is a regression test, not legacy code — it is the reason to
 believe anything else here.
 
@@ -23,7 +23,9 @@ believe anything else here.
 | [Uncertainty exceeds signal](#uncertainty-exceeds-signal) | The atmosphere model moves the answer 2× further than the storm |
 | [Two independent code paths agree](#two-independent-code-paths-agree) | Monte Carlo vs analytic solver, and the scope of that check |
 | [Which uncertainty is worth attacking](#which-uncertainty-is-worth-attacking) | `Cd·A` is reducible; mass is not. The actionable result |
-| [Mass estimation that refuses to guess](#mass-estimation-that-refuses-to-guess) | Gate 9 **FAIL**, recorded, with the method limit that caused it |
+| [Mass estimation that refuses to guess](#mass-estimation-that-refuses-to-guess) | **Fails its own bar, recorded**, with the method limit that caused it |
+| [The provenance boundary](#the-provenance-boundary) | Why the guarantee lives in validation, not in the extractor |
+| [The studio](#the-studio) | Where a refusal renders as a refusal |
 | [Limitations](#limitations) · [How to run](#how-to-run) | Including the ones that make a verdict non-renderable |
 
 ---
@@ -141,7 +143,7 @@ assumption that the observed decay is telling you about drag rather than about
 something else. A fourth line of evidence that never integrates anything is
 worth more than a fourth that does.
 
-The projected-area solver ([`sim/geometry.py`](sim/geometry.py), Phase 8) takes
+The projected-area solver ([`sim/geometry.py`](sim/geometry.py)) takes
 the chassis dimensions and deployed span from
 [`satellite_specs.json`](data/satellite_specs.json) and computes the area
 presented to the flow, for any attitude. In the knife-edge attitude the
@@ -207,8 +209,8 @@ Four methods, four kinds of evidence, one number — but read the fourth as
 independent corroboration of the right order of magnitude, not as a precise
 confirmation. This is still what V2 was for: pinning `A` from geometry
 constrains one of the three inseparable factors by construction instead of by
-assumption ([`docs/V2_BRIEF.md`](docs/V2_BRIEF.md) §2), and it narrows the
-plausible range from 4.0× to 2.7× even where it cannot settle the value.
+assumption, and it narrows the plausible range from 4.0× to 2.7× even where
+it cannot settle the value.
 
 ### What the published 4.48 m² actually is
 
@@ -431,14 +433,14 @@ the table.
 The `Cd·A` range is different in kind. Its 2.7× width comes from two disputed
 chassis dimension pairs and a 2.0–2.4 drag convention — all of which are
 *sourcing problems*. A published chassis drawing would collapse most of it.
-Phase 8 already narrowed the plausible range from 4.0× to 2.7× just by solving
-geometry rather than assuming area.
+Solving the geometry rather than assuming an area already narrowed the
+plausible range from 4.0× to 2.7×.
 
 **So the instruction to a designer is specific: better spacecraft dimensions
 will help, and a second mass predictor is the only thing that will help the
 mass.** Chasing more reference satellites is the intuitive move and the wrong
-one. That is what [`V2_BRIEF.md`](docs/V2_BRIEF.md) §5's stage 2 is for, and it
-is now a measured conclusion rather than an assumed one.
+one. Component-level mass estimating relationships are the thing that would
+help, and that is now a measured conclusion rather than an assumed one.
 
 The rest of this section is how the mass model behaves given that it cannot
 resolve, and the gate it failed proving it.
@@ -455,7 +457,7 @@ this by interpolating between real spacecraft — 20 sourced entries from a
 fitted; no coefficient appears in [`sim/mass_model.py`](sim/mass_model.py), and
 an LLM never produces a kilogram figure.
 
-**Gate 9 failed. 1 of 3.** Three spacecraft were held out — one per size class,
+**It fails its own acceptance bar: 1 of 3 within 25%.** Three spacecraft were held out — one per size class,
 each with published *dry* mass and published power, chosen before any
 prediction was computed:
 
@@ -476,7 +478,7 @@ without the range beside it would repeat exactly the mistake the
 
 The obvious reading of a 37% miss is that the table is too thin, and the
 obvious fix is more rows. That reading is wrong here, and the distinction is
-the most useful thing this phase produced.
+the most useful thing to come out of building it.
 
 **PROBA-V (320 W, 140 kg) and Deimos-2 (330 W, 310 kg) are real spacecraft at
 essentially identical power whose masses differ by 2.2×.** Across the
@@ -492,9 +494,9 @@ arithmetic error.
 
 ### So the method was bounded, not extended
 
-Rather than build the component-level mass estimating relationships that
-[`V2_BRIEF.md`](docs/V2_BRIEF.md) §5 defers to stage 2, the existing method now
-declines to answer where it cannot. A point estimate is withheld when the
+Rather than reach for component-level mass estimating relationships — weeks of
+work, and a different project — the existing method now declines to answer
+where it cannot. A point estimate is withheld when the
 bracketing spacecraft are more than 4× apart in power, or when kg/W among
 comparable spacecraft varies by more than 2×. Re-scored, **table unchanged**:
 
@@ -552,6 +554,110 @@ but as
 sets out, that ordering is the less important half of the comparison —
 reducibility is what determines where effort pays off, and the two terms differ
 there far more sharply than they differ in width.
+
+---
+
+## The provenance boundary
+
+Everything above describes a model that knows what it doesn't know. Making that
+survive contact with a natural-language front door is a separate problem, and
+it is the architectural idea worth taking from this project.
+
+The failure mode is specific. Ask a language model to turn *"a 400 kg imaging
+satellite at 600 km"* into a spec and it will happily emit `dry_mass_kg: 400`.
+That number then flows into the ballistic coefficient, through the decay
+integration, and out as a compliance verdict — and **nothing downstream can
+tell it apart from a computed one.** A fabricated input is indistinguishable
+from a derived result once it is three functions deep. This is the same failure
+as a studio full of plausible numbers with no engine underneath; it just
+arrives through the front door instead of the back.
+
+So the codebase draws one hard line, in
+[`sim/spec.py`](sim/spec.py): a list of quantities the engine derives, which a
+spec may therefore never assert.
+
+```python
+FORBIDDEN_FIELDS = {
+    "dry_mass_kg":  "sim/mass_model.py estimates dry mass",
+    "ram_area_m2":  "sim/geometry.py solves projected area",
+    "cd":           "a modelling convention from data/satellite_specs.json",
+    "delta_v_ms":   "sim/disposal.py computes disposal delta-v",
+    "verdict":      "sim/disposal.py returns the verdict",
+    ...
+}
+```
+
+A spec containing any of them is rejected, and the rejection names the module
+that owns the number rather than just refusing.
+
+**The guarantee lives in validation, not in the extractor.** That distinction
+is the whole design. It would be easy to write a careful prompt, or a careful
+parser, that never emits a mass — and that protection would be worth nothing,
+because it holds only while the thing generating specs behaves. Instead every
+spec goes through the same `validate_spec_payload` regardless of origin:
+language model, regex parser, web form, or a file someone hand-edited. A model
+that ignores its instructions and returns `dry_mass_kg: 240` gets the spec
+rejected, not sanitised. The schema is closed too, so an unrecognised field is
+refused rather than passed along — it is either a typo or an attempt to hand
+the engine something it should be computing.
+
+Two consequences are worth spelling out, because both look like unhelpfulness
+until you see what they prevent.
+
+**A stated mass is discarded, not used.** Prose saying "a 400 kg satellite"
+produces a design whose mass came from the interpolation table, with a note
+recording that the stated figure was dropped and why. The user's number was
+real information, and throwing it away is a real cost — but accepting it would
+let one sentence silently overwrite a computation, and once a language model is
+in the loop there is no way to distinguish "the user said so" from "the model
+made it up".
+
+**Partial geometry is refused rather than completed.** State a bus length and
+width but no thickness and the spec is rejected outright. Filling in the third
+dimension from a typical bus would be the single most tempting shortcut in the
+codebase — it would look like helpfulness, produce a plausible ram area, and
+turn a refusal into a verdict. It is exactly the fabrication the boundary
+exists to stop, so the rule is all three dimensions or none, and a design with
+none gets its ram area refused and no verdict at all.
+
+The result is that "the engine declined" is a first-class outcome rather than
+an error path. It has a value (a bounded range), a reason, and a place to
+render.
+
+---
+
+## The studio
+
+The three-panel interface is where that boundary becomes visible: a console on
+the left showing what the prose determined and what it did not, an orbit view
+in the centre, and a spec panel on the right.
+
+Every value in the spec panel carries one of four provenance kinds, and the
+four are rendered differently rather than sharing a tooltip:
+
+| kind | meaning |
+|---|---|
+| `stated` | the spec said so |
+| `computed` | derived exactly from stated inputs |
+| `estimated` | derived with real uncertainty — the interval is always shown |
+| `refused` | the engine declined — the reason takes the place of the number |
+
+Mass never appears as a bare figure. It renders as `1019 kg [769–1424 kg]`
+above the two real spacecraft it was interpolated between, with their masses,
+powers and citations — CryoSat-2 at 684 kg and 850 W, Himawari-8 at 1300 kg and
+2600 W. A reader who doubts the number can go and check the sources.
+
+**Refusals render as refusals.** A design whose mass cannot be resolved shows
+`NO SINGLE VALUE — THE ENGINE DECLINED`, its bounded range, and the reason the
+range cannot be narrowed. A verdict that flips across the mass interval says
+so. Neither is shown as a blank, an em-dash, or a hedged number, because all
+three read as *small* or *not applicable* rather than *this tool declined to
+answer*. The `renderable` flag comes straight from the Python side, so the
+interface never has to decide which verdicts are real.
+
+The frontend computes nothing. It reads `out/studio.json` and draws it — even
+the orbit track's segmentation at the ±180° seam is done in Python, so the view
+stays a renderer ([`docs/ARCHITECTURE.md` §2](docs/ARCHITECTURE.md)).
 
 ---
 
@@ -618,11 +724,12 @@ Full list with sourcing: [PHYSICS.md §10](PHYSICS.md#10-known-limitations).
 ```bash
 uv venv --python python3.12 .venv
 uv pip install --python .venv/bin/python pymsis==0.12.0 numpy scipy pytest matplotlib
-.venv/bin/python -m pytest -q                 # 192 tests
+.venv/bin/python -m pytest -q                 # 267 tests
 
 .venv/bin/python -m sim.validate              # Baruah + Swarm C reproduction
 .venv/bin/python -m sim.sweeps                # the three §9 sweeps + validation payload
 .venv/bin/python -m sim.export                # out/batch.json, the fleet reproduction
+.venv/bin/python -m sim.studio                # out/studio.json, the design gallery
 ```
 
 These write figures and JSON to `out/` (gitignored except for the PNGs
@@ -638,18 +745,25 @@ was 3.9, too old for current `pymsis` wheels; the venv above targets 3.12.
 ```bash
 cd web
 npm install
-npm run dev       # http://localhost:5173, reads out/batch.json and out/sweeps.json
+npm run dev       # http://localhost:5173, reads the three out/*.json files
 ```
 
-Four views (globe, altitude, sweeps, validation) over the two JSON files
-above; no physics runs in the browser. See [`web/README.md`](web/README.md).
+Five views — studio, globe, altitude, sweeps, validation — over the JSON above.
+No physics runs in the browser. See [`web/README.md`](web/README.md).
 
 #### Interface
 
-<img src="out/screenshots/globe.png" alt="Globe view: 49 satellites coloured by outcome, both Cd runs shown, click for parameters" width="32%"> <img src="out/screenshots/sweeps.png" alt="Sweeps view: survival fraction vs ram area, storm vs quiet, density band shaded" width="32%"> <img src="out/screenshots/validation.png" alt="Validation view: the Baruah comparison table" width="32%">
+<img src="out/screenshots/studio.png" alt="Studio: console left, orbit centre, spec panel right with provenance badges" width="100%">
 
-*Globe, sweeps, and validation views. Every number on screen comes from
-`out/batch.json` or `out/sweeps.json` — see the hard rules in
+*The studio. Left, what the description determined; centre, the orbit; right,
+every field with its provenance. This design's mass resolved, so it carries an
+interval and its two reference spacecraft.*
+
+<img src="out/screenshots/studio-refusal.png" alt="Studio showing a refusal: no verdict, the mass could not be resolved" width="49%"> <img src="out/screenshots/validation.png" alt="Validation view: the Baruah comparison table" width="49%">
+
+*Left: a refusal rendered as a refusal — no verdict, the bounded range, and the
+reason it cannot be narrowed. Right: the validation view. Every number on
+screen comes from one of the three `out/*.json` files — see the hard rules in
 [`web/README.md`](web/README.md).*
 
 Project structure, build order, and the JSON export contract:
