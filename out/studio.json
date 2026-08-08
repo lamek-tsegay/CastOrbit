@@ -1,0 +1,7247 @@
+{
+ "meta": {
+  "generated": "2026-08-08T18:48:57.679848+00:00",
+  "cd_baseline": 2.2,
+  "atmosphere_model": "NRLMSIS 2.1 via pymsis, climatology levels",
+  "disposal_rule": {
+   "id": "fcc_5yr",
+   "label": "FCC 5-year rule",
+   "citation": "47 CFR \u00a7 25.283(e)",
+   "window_years": 5.0,
+   "clock_starts": "end_of_mission",
+   "source": "https://www.law.cornell.edu/cfr/text/47/25.283"
+  },
+  "provenance_kinds": {
+   "stated": "the spec said so",
+   "computed": "derived exactly from stated inputs",
+   "estimated": "derived with real uncertainty; carries an interval",
+   "refused": "the engine declined; carries the reason"
+  }
+ },
+ "designs": [
+  {
+   "label": "sso-imager",
+   "prose": "An optical imaging spacecraft in a 786 km orbit at 81.4 degrees inclination, drawing 1700 W, operating for 7 years.",
+   "extraction": {
+    "complete": true,
+    "spec": {
+     "altitude_km": 786.0,
+     "inclination_deg": 81.4,
+     "payload_class": "earth_observation",
+     "power_w": 1700.0,
+     "mission_duration_years": 7.0,
+     "label": "sso-imager",
+     "provenance": {
+      "altitude_km": "stated",
+      "inclination_deg": "stated",
+      "payload_class": "stated",
+      "power_w": "stated",
+      "mission_duration_years": "stated"
+     }
+    },
+    "questions": [],
+    "discarded": []
+   },
+   "spec": {
+    "altitude_km": 786.0,
+    "inclination_deg": 81.4,
+    "payload_class": "earth_observation",
+    "power_w": 1700.0,
+    "mission_duration_years": 7.0,
+    "label": "sso-imager",
+    "propellant_available_kg": 40.0,
+    "isp_s": 1666.0,
+    "bus_length_m": 3.0,
+    "bus_width_m": 1.5,
+    "bus_thickness_m": 0.3,
+    "solar_array_span_m": 8.0,
+    "solar_array_chord_m": 1.4,
+    "provenance": {}
+   },
+   "fields": {
+    "altitude_km": {
+     "value": 786.0,
+     "unit": "km",
+     "kind": "stated",
+     "detail": "from the description"
+    },
+    "inclination_deg": {
+     "value": 81.4,
+     "unit": "deg",
+     "kind": "stated",
+     "detail": "sampled latitude for density (PHYSICS.md \u00a710.2)"
+    },
+    "power_w": {
+     "value": 1700.0,
+     "unit": "W",
+     "kind": "stated",
+     "detail": "from the description"
+    },
+    "mission_duration_years": {
+     "value": 7.0,
+     "unit": "yr",
+     "kind": "stated",
+     "detail": "disposal clock starts at end of mission (47 CFR 25.283(e))"
+    },
+    "payload_class": {
+     "value": "earth_observation",
+     "kind": "stated",
+     "detail": "selects the mass-model reference class"
+    },
+    "cd": {
+     "value": 2.2,
+     "kind": "stated",
+     "detail": "Free-molecular convention from data/satellite_specs.json (swept 2.0-2.4 elsewhere). Not a spec input."
+    },
+    "dry_mass_kg": {
+     "value": 1018.5,
+     "unit": "kg",
+     "kind": "estimated",
+     "detail": "interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)",
+     "interval": [
+      768.5,
+      1424.1
+     ],
+     "sources": [
+      {
+       "name": "CryoSat-2",
+       "mass_kg": 684.0,
+       "power_w": 850.0,
+       "kg_per_w": 0.8047,
+       "source": "eoPortal, CryoSat-2 (Earth Explorer Opportunity Mission-2)"
+      },
+      {
+       "name": "Himawari-8",
+       "mass_kg": 1300.0,
+       "power_w": 2600.0,
+       "kg_per_w": 0.5,
+       "source": "eoPortal, Himawari-8 and 9; Gunter's Space Page"
+      }
+     ]
+    },
+    "ram_area_knife_edge_m2": {
+     "value": 0.53,
+     "unit": "m^2",
+     "kind": "computed",
+     "detail": "sim/geometry.py projected-area solver over the stated 3 x 1.5 x 0.3 m bus plus a 8 x 1.4 m array (minimum-area attitude)"
+    },
+    "ram_area_broadside_m2": {
+     "value": 15.7355,
+     "unit": "m^2",
+     "kind": "computed",
+     "detail": "sim/geometry.py projected-area solver over the stated 3 x 1.5 x 0.3 m bus plus a 8 x 1.4 m array (maximum-area attitude)"
+    },
+    "ballistic_coefficient_kg_m2": {
+     "value": 873.5,
+     "unit": "kg/m^2",
+     "kind": "estimated",
+     "detail": "m/(Cd*A); inherits the mass interval (sim/bounded.py)",
+     "interval": [
+      659.1,
+      1221.3
+     ]
+    },
+    "cd_times_area_m2": {
+     "value": 1.166,
+     "unit": "m^2",
+     "kind": "computed",
+     "detail": "the only separately observable combination (README central finding)"
+    }
+   },
+   "orbit": {
+    "segments": [
+     [
+      [
+       0.0,
+       0.0
+      ],
+      [
+       1.489,
+       0.12
+      ],
+      [
+       2.979,
+       0.24
+      ],
+      [
+       4.468,
+       0.361
+      ],
+      [
+       5.957,
+       0.482
+      ],
+      [
+       7.446,
+       0.605
+      ],
+      [
+       8.935,
+       0.73
+      ],
+      [
+       10.424,
+       0.856
+      ],
+      [
+       11.913,
+       0.984
+      ],
+      [
+       13.401,
+       1.116
+      ],
+      [
+       14.889,
+       1.25
+      ],
+      [
+       16.377,
+       1.387
+      ],
+      [
+       17.865,
+       1.528
+      ],
+      [
+       19.353,
+       1.673
+      ],
+      [
+       20.84,
+       1.823
+      ],
+      [
+       22.326,
+       1.978
+      ],
+      [
+       23.813,
+       2.139
+      ],
+      [
+       25.298,
+       2.306
+      ],
+      [
+       26.784,
+       2.479
+      ],
+      [
+       28.268,
+       2.66
+      ],
+      [
+       29.752,
+       2.849
+      ],
+      [
+       31.236,
+       3.047
+      ],
+      [
+       32.719,
+       3.255
+      ],
+      [
+       34.2,
+       3.473
+      ],
+      [
+       35.681,
+       3.703
+      ],
+      [
+       37.161,
+       3.945
+      ],
+      [
+       38.64,
+       4.201
+      ],
+      [
+       40.118,
+       4.473
+      ],
+      [
+       41.595,
+       4.761
+      ],
+      [
+       43.07,
+       5.068
+      ],
+      [
+       44.543,
+       5.395
+      ],
+      [
+       46.015,
+       5.745
+      ],
+      [
+       47.485,
+       6.119
+      ],
+      [
+       48.953,
+       6.521
+      ],
+      [
+       50.419,
+       6.954
+      ],
+      [
+       51.881,
+       7.421
+      ],
+      [
+       53.341,
+       7.927
+      ],
+      [
+       54.798,
+       8.475
+      ],
+      [
+       56.251,
+       9.073
+      ],
+      [
+       57.699,
+       9.726
+      ],
+      [
+       59.143,
+       10.443
+      ],
+      [
+       60.58,
+       11.231
+      ],
+      [
+       62.012,
+       12.103
+      ],
+      [
+       63.436,
+       13.07
+      ],
+      [
+       64.85,
+       14.15
+      ],
+      [
+       66.255,
+       15.361
+      ],
+      [
+       67.647,
+       16.726
+      ],
+      [
+       69.024,
+       18.275
+      ],
+      [
+       70.383,
+       20.044
+      ],
+      [
+       71.72,
+       22.077
+      ],
+      [
+       73.029,
+       24.432
+      ],
+      [
+       74.304,
+       27.18
+      ],
+      [
+       75.536,
+       30.41
+      ],
+      [
+       76.713,
+       34.23
+      ],
+      [
+       77.818,
+       38.773
+      ],
+      [
+       78.83,
+       44.186
+      ],
+      [
+       79.723,
+       50.611
+      ],
+      [
+       80.461,
+       58.145
+      ],
+      [
+       81.008,
+       66.769
+      ],
+      [
+       81.327,
+       76.263
+      ],
+      [
+       81.392,
+       86.187
+      ],
+      [
+       81.198,
+       95.963
+      ],
+      [
+       80.761,
+       105.064
+      ],
+      [
+       80.113,
+       113.157
+      ],
+      [
+       79.293,
+       120.129
+      ],
+      [
+       78.337,
+       126.032
+      ],
+      [
+       77.275,
+       130.991
+      ],
+      [
+       76.132,
+       135.155
+      ],
+      [
+       74.926,
+       138.665
+      ],
+      [
+       73.671,
+       141.641
+      ],
+      [
+       72.378,
+       144.183
+      ],
+      [
+       71.054,
+       146.369
+      ],
+      [
+       69.706,
+       148.264
+      ],
+      [
+       68.337,
+       149.918
+      ],
+      [
+       66.953,
+       151.371
+      ],
+      [
+       65.554,
+       152.656
+      ],
+      [
+       64.144,
+       153.798
+      ],
+      [
+       62.725,
+       154.82
+      ],
+      [
+       61.297,
+       155.738
+      ],
+      [
+       59.862,
+       156.566
+      ],
+      [
+       58.421,
+       157.317
+      ],
+      [
+       56.975,
+       158.001
+      ],
+      [
+       55.525,
+       158.625
+      ],
+      [
+       54.07,
+       159.198
+      ],
+      [
+       52.612,
+       159.725
+      ],
+      [
+       51.15,
+       160.21
+      ],
+      [
+       49.686,
+       160.66
+      ],
+      [
+       48.219,
+       161.077
+      ],
+      [
+       46.751,
+       161.465
+      ],
+      [
+       45.28,
+       161.826
+      ],
+      [
+       43.807,
+       162.164
+      ],
+      [
+       42.333,
+       162.481
+      ],
+      [
+       40.857,
+       162.778
+      ],
+      [
+       39.379,
+       163.058
+      ],
+      [
+       37.901,
+       163.322
+      ],
+      [
+       36.422,
+       163.571
+      ],
+      [
+       34.941,
+       163.807
+      ],
+      [
+       33.46,
+       164.031
+      ],
+      [
+       31.977,
+       164.244
+      ],
+      [
+       30.494,
+       164.446
+      ],
+      [
+       29.01,
+       164.64
+      ],
+      [
+       27.526,
+       164.824
+      ],
+      [
+       26.041,
+       165.002
+      ],
+      [
+       24.556,
+       165.172
+      ],
+      [
+       23.069,
+       165.335
+      ],
+      [
+       21.583,
+       165.493
+      ],
+      [
+       20.096,
+       165.645
+      ],
+      [
+       18.609,
+       165.793
+      ],
+      [
+       17.121,
+       165.936
+      ],
+      [
+       15.633,
+       166.075
+      ],
+      [
+       14.145,
+       166.211
+      ],
+      [
+       12.657,
+       166.344
+      ],
+      [
+       11.168,
+       166.473
+      ],
+      [
+       9.68,
+       166.601
+      ],
+      [
+       8.191,
+       166.726
+      ],
+      [
+       6.702,
+       166.85
+      ],
+      [
+       5.213,
+       166.972
+      ],
+      [
+       3.723,
+       167.093
+      ],
+      [
+       2.234,
+       167.213
+      ],
+      [
+       0.745,
+       167.333
+      ],
+      [
+       -0.745,
+       167.453
+      ],
+      [
+       -2.234,
+       167.573
+      ],
+      [
+       -3.723,
+       167.693
+      ],
+      [
+       -5.213,
+       167.815
+      ],
+      [
+       -6.702,
+       167.937
+      ],
+      [
+       -8.191,
+       168.06
+      ],
+      [
+       -9.68,
+       168.186
+      ],
+      [
+       -11.168,
+       168.313
+      ],
+      [
+       -12.657,
+       168.443
+      ],
+      [
+       -14.145,
+       168.575
+      ],
+      [
+       -15.633,
+       168.711
+      ],
+      [
+       -17.121,
+       168.85
+      ],
+      [
+       -18.609,
+       168.993
+      ],
+      [
+       -20.096,
+       169.141
+      ],
+      [
+       -21.583,
+       169.293
+      ],
+      [
+       -23.069,
+       169.451
+      ],
+      [
+       -24.556,
+       169.615
+      ],
+      [
+       -26.041,
+       169.785
+      ],
+      [
+       -27.526,
+       169.962
+      ],
+      [
+       -29.01,
+       170.147
+      ],
+      [
+       -30.494,
+       170.34
+      ],
+      [
+       -31.977,
+       170.543
+      ],
+      [
+       -33.46,
+       170.756
+      ],
+      [
+       -34.941,
+       170.98
+      ],
+      [
+       -36.422,
+       171.215
+      ],
+      [
+       -37.901,
+       171.465
+      ],
+      [
+       -39.379,
+       171.728
+      ],
+      [
+       -40.857,
+       172.008
+      ],
+      [
+       -42.333,
+       172.306
+      ],
+      [
+       -43.807,
+       172.622
+      ],
+      [
+       -45.28,
+       172.96
+      ],
+      [
+       -46.751,
+       173.322
+      ],
+      [
+       -48.219,
+       173.71
+      ],
+      [
+       -49.686,
+       174.127
+      ],
+      [
+       -51.15,
+       174.576
+      ],
+      [
+       -52.612,
+       175.062
+      ],
+      [
+       -54.07,
+       175.588
+      ],
+      [
+       -55.525,
+       176.161
+      ],
+      [
+       -56.975,
+       176.786
+      ],
+      [
+       -58.421,
+       177.469
+      ],
+      [
+       -59.862,
+       178.22
+      ],
+      [
+       -61.297,
+       179.049
+      ],
+      [
+       -62.725,
+       179.967
+      ]
+     ],
+     [
+      [
+       -64.144,
+       -179.012
+      ],
+      [
+       -65.554,
+       -177.869
+      ],
+      [
+       -66.953,
+       -176.585
+      ],
+      [
+       -68.337,
+       -175.131
+      ],
+      [
+       -69.706,
+       -173.478
+      ],
+      [
+       -71.054,
+       -171.583
+      ],
+      [
+       -72.378,
+       -169.396
+      ],
+      [
+       -73.671,
+       -166.855
+      ],
+      [
+       -74.926,
+       -163.878
+      ],
+      [
+       -76.132,
+       -160.368
+      ],
+      [
+       -77.275,
+       -156.204
+      ],
+      [
+       -78.337,
+       -151.245
+      ],
+      [
+       -79.293,
+       -145.343
+      ],
+      [
+       -80.113,
+       -138.37
+      ],
+      [
+       -80.761,
+       -130.278
+      ],
+      [
+       -81.198,
+       -121.177
+      ],
+      [
+       -81.392,
+       -111.4
+      ],
+      [
+       -81.327,
+       -101.477
+      ],
+      [
+       -81.008,
+       -91.982
+      ],
+      [
+       -80.461,
+       -83.359
+      ],
+      [
+       -79.723,
+       -75.824
+      ],
+      [
+       -78.83,
+       -69.399
+      ],
+      [
+       -77.818,
+       -63.987
+      ],
+      [
+       -76.713,
+       -59.444
+      ],
+      [
+       -75.536,
+       -55.623
+      ],
+      [
+       -74.304,
+       -52.394
+      ],
+      [
+       -73.029,
+       -49.646
+      ],
+      [
+       -71.72,
+       -47.291
+      ],
+      [
+       -70.383,
+       -45.257
+      ],
+      [
+       -69.024,
+       -43.488
+      ],
+      [
+       -67.647,
+       -41.939
+      ],
+      [
+       -66.255,
+       -40.574
+      ],
+      [
+       -64.85,
+       -39.363
+      ],
+      [
+       -63.436,
+       -38.284
+      ],
+      [
+       -62.012,
+       -37.316
+      ],
+      [
+       -60.58,
+       -36.445
+      ],
+      [
+       -59.143,
+       -35.656
+      ],
+      [
+       -57.699,
+       -34.94
+      ],
+      [
+       -56.251,
+       -34.287
+      ],
+      [
+       -54.798,
+       -33.689
+      ],
+      [
+       -53.341,
+       -33.14
+      ],
+      [
+       -51.881,
+       -32.634
+      ],
+      [
+       -50.419,
+       -32.167
+      ],
+      [
+       -48.953,
+       -31.735
+      ],
+      [
+       -47.485,
+       -31.333
+      ],
+      [
+       -46.015,
+       -30.958
+      ],
+      [
+       -44.543,
+       -30.609
+      ],
+      [
+       -43.07,
+       -30.282
+      ],
+      [
+       -41.595,
+       -29.975
+      ],
+      [
+       -40.118,
+       -29.686
+      ],
+      [
+       -38.64,
+       -29.415
+      ],
+      [
+       -37.161,
+       -29.159
+      ],
+      [
+       -35.681,
+       -28.916
+      ],
+      [
+       -34.2,
+       -28.686
+      ],
+      [
+       -32.719,
+       -28.468
+      ],
+      [
+       -31.236,
+       -28.261
+      ],
+      [
+       -29.752,
+       -28.063
+      ],
+      [
+       -28.268,
+       -27.874
+      ],
+      [
+       -26.784,
+       -27.693
+      ],
+      [
+       -25.298,
+       -27.519
+      ],
+      [
+       -23.813,
+       -27.352
+      ],
+      [
+       -22.326,
+       -27.192
+      ],
+      [
+       -20.84,
+       -27.037
+      ],
+      [
+       -19.353,
+       -26.887
+      ],
+      [
+       -17.865,
+       -26.742
+      ],
+      [
+       -16.377,
+       -26.6
+      ],
+      [
+       -14.889,
+       -26.463
+      ],
+      [
+       -13.401,
+       -26.329
+      ],
+      [
+       -11.913,
+       -26.198
+      ],
+      [
+       -10.424,
+       -26.069
+      ],
+      [
+       -8.935,
+       -25.943
+      ],
+      [
+       -7.446,
+       -25.819
+      ],
+      [
+       -5.957,
+       -25.696
+      ],
+      [
+       -4.468,
+       -25.574
+      ],
+      [
+       -2.979,
+       -25.453
+      ],
+      [
+       -1.489,
+       -25.333
+      ],
+      [
+       -0.0,
+       -25.213
+      ]
+     ]
+    ],
+    "altitude_km": 786.0,
+    "period_minutes": 100.58,
+    "note": "Ground track is illustrative display geometry. Inclination and altitude are the spec's and the period is computed from them, but lat/lon modelling is outside the validated physics (PHYSICS.md \u00a71)."
+   },
+   "compliance": {
+    "verdict": "COMPLIANT_WITH_DISPOSAL",
+    "renderable": true,
+    "mass": {
+     "mass_kg": 1018.4935939145129,
+     "interval_kg": [
+      768.5416666666666,
+      1424.083769633508
+     ],
+     "resolvable": true,
+     "summary": "1018 kg (estimated, 769-1424 kg)",
+     "tag": "estimated",
+     "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+     "provenance": "interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)",
+     "neighbours": [
+      {
+       "id": "cryosat_2",
+       "name": "CryoSat-2",
+       "mass_kg": 684.0,
+       "power_w": 850.0,
+       "kg_per_w": 0.8047058823529412,
+       "source": "eoPortal, CryoSat-2 (Earth Explorer Opportunity Mission-2)"
+      },
+      {
+       "id": "himawari_8",
+       "name": "Himawari-8",
+       "mass_kg": 1300.0,
+       "power_w": 2600.0,
+       "kg_per_w": 0.5,
+       "source": "eoPortal, Himawari-8 and 9; Gunter's Space Page"
+      }
+     ],
+     "power_w": 1700.0,
+     "payload_class": "earth_observation",
+     "extrapolated": false,
+     "bracket_ratio": 3.0588235294117645,
+     "scatter_ratio": 1.852968851786619,
+     "scatter_basis": "local",
+     "n_samples": 4,
+     "refusal_reasons": [],
+     "warnings": []
+    },
+    "mass_interval_kg": [
+     768.5416666666666,
+     1424.083769633508
+    ],
+    "ballistic_coefficient_kg_m2": [
+     659.126643796455,
+     1221.3411403374853
+    ],
+    "delta_v_interval_ms": [
+     231.39880077528414,
+     246.7226218473652
+    ],
+    "propellant_interval_kg": [
+     10.808388597568898,
+     21.343899361822306
+    ],
+    "optimistic": {
+     "verdict": "COMPLIANT_WITH_DISPOSAL",
+     "renderable": true,
+     "rule": {
+      "id": "fcc_5yr",
+      "label": "FCC 5-year rule",
+      "citation": "47 CFR \u00a7 25.283(e)",
+      "window_years": 5.0
+     },
+     "solar_activity": "mean",
+     "operational_altitude_km": 786.0,
+     "natural_decay_years": null,
+     "disposal_altitude_km": 361.26953125,
+     "delta_v_ms": 231.39880077528414,
+     "propellant_required_kg": 10.808388597568898,
+     "propellant_available_kg": 40.0,
+     "perigee_lowering_delta_v_ms": 160.76874230596513,
+     "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+     "notes": [
+      "Natural decay does not reenter within 5 years at 786.0 km.",
+      "Highest complying circular altitude is 361.3 km; transfer costs 114.8 + 116.6 = 231.4 m/s.",
+      "For reference, a single-burn drop to a 200 km perigee costs 160.8 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+     ]
+    },
+    "pessimistic": {
+     "verdict": "COMPLIANT_WITH_DISPOSAL",
+     "renderable": true,
+     "rule": {
+      "id": "fcc_5yr",
+      "label": "FCC 5-year rule",
+      "citation": "47 CFR \u00a7 25.283(e)",
+      "window_years": 5.0
+     },
+     "solar_activity": "mean",
+     "operational_altitude_km": 786.0,
+     "natural_decay_years": null,
+     "disposal_altitude_km": 334.47265625,
+     "delta_v_ms": 246.7226218473652,
+     "propellant_required_kg": 21.343899361822306,
+     "propellant_available_kg": 40.0,
+     "perigee_lowering_delta_v_ms": 160.76874230596513,
+     "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+     "notes": [
+      "Natural decay does not reenter within 5 years at 786.0 km.",
+      "Highest complying circular altitude is 334.5 km; transfer costs 122.4 + 124.4 = 246.7 m/s.",
+      "For reference, a single-burn drop to a 200 km perigee costs 160.8 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+     ]
+    },
+    "notes": [
+     "Mass bounded to [768.5, 1424] kg (interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)); ballistic coefficient [659.1, 1221] kg/m2."
+    ]
+   },
+   "solar_band": {
+    "caveat": "Bounds, not scenarios. Each level holds solar activity fixed at a percentile of the 1957-onward observed record for the whole run. No real 25-year period sits at one level -- the solar cycle is ~11 years, so a sustained solar maximum is physically impossible, not merely unlikely. Read low/high as bounds the true answer lies between, and never as best-case and worst-case futures.",
+    "percentiles": {
+     "low": 5.0,
+     "mean": 50.0,
+     "high": 95.0
+    },
+    "levels": {
+     "low": {
+      "natural_decay_years": null,
+      "compliance": {
+       "verdict": "COMPLIANT_WITH_DISPOSAL",
+       "renderable": true,
+       "mass": {
+        "mass_kg": 1018.4935939145129,
+        "interval_kg": [
+         768.5416666666666,
+         1424.083769633508
+        ],
+        "resolvable": true,
+        "summary": "1018 kg (estimated, 769-1424 kg)",
+        "tag": "estimated",
+        "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+        "provenance": "interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)",
+        "neighbours": [
+         {
+          "id": "cryosat_2",
+          "name": "CryoSat-2",
+          "mass_kg": 684.0,
+          "power_w": 850.0,
+          "kg_per_w": 0.8047058823529412,
+          "source": "eoPortal, CryoSat-2 (Earth Explorer Opportunity Mission-2)"
+         },
+         {
+          "id": "himawari_8",
+          "name": "Himawari-8",
+          "mass_kg": 1300.0,
+          "power_w": 2600.0,
+          "kg_per_w": 0.5,
+          "source": "eoPortal, Himawari-8 and 9; Gunter's Space Page"
+         }
+        ],
+        "power_w": 1700.0,
+        "payload_class": "earth_observation",
+        "extrapolated": false,
+        "bracket_ratio": 3.0588235294117645,
+        "scatter_ratio": 1.852968851786619,
+        "scatter_basis": "local",
+        "n_samples": 4,
+        "refusal_reasons": [],
+        "warnings": []
+       },
+       "mass_interval_kg": [
+        768.5416666666666,
+        1424.083769633508
+       ],
+       "ballistic_coefficient_kg_m2": [
+        659.126643796455,
+        1221.3411403374853
+       ],
+       "delta_v_interval_ms": [
+        250.5676952199292,
+        262.91011109888495
+       ],
+       "propellant_interval_kg": [
+        11.696899998435072,
+        22.73303876696663
+       ],
+       "optimistic": {
+        "verdict": "COMPLIANT_WITH_DISPOSAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "low",
+        "operational_altitude_km": 786.0,
+        "natural_decay_years": null,
+        "disposal_altitude_km": 327.7734375,
+        "delta_v_ms": 250.5676952199292,
+        "propellant_required_kg": 11.696899998435072,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": 160.76874230596513,
+        "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+        "notes": [
+         "Natural decay does not reenter within 5 years at 786.0 km.",
+         "Highest complying circular altitude is 327.8 km; transfer costs 124.2 + 126.3 = 250.6 m/s.",
+         "For reference, a single-burn drop to a 200 km perigee costs 160.8 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+        ]
+       },
+       "pessimistic": {
+        "verdict": "COMPLIANT_WITH_DISPOSAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "low",
+        "operational_altitude_km": 786.0,
+        "natural_decay_years": null,
+        "disposal_altitude_km": 306.3359375,
+        "delta_v_ms": 262.91011109888495,
+        "propellant_required_kg": 22.73303876696663,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": 160.76874230596513,
+        "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+        "notes": [
+         "Natural decay does not reenter within 5 years at 786.0 km.",
+         "Highest complying circular altitude is 306.3 km; transfer costs 130.3 + 132.6 = 262.9 m/s.",
+         "For reference, a single-burn drop to a 200 km perigee costs 160.8 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+        ]
+       },
+       "notes": [
+        "Mass bounded to [768.5, 1424] kg (interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)); ballistic coefficient [659.1, 1221] kg/m2."
+       ]
+      }
+     },
+     "mean": {
+      "natural_decay_years": null,
+      "compliance": {
+       "verdict": "COMPLIANT_WITH_DISPOSAL",
+       "renderable": true,
+       "mass": {
+        "mass_kg": 1018.4935939145129,
+        "interval_kg": [
+         768.5416666666666,
+         1424.083769633508
+        ],
+        "resolvable": true,
+        "summary": "1018 kg (estimated, 769-1424 kg)",
+        "tag": "estimated",
+        "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+        "provenance": "interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)",
+        "neighbours": [
+         {
+          "id": "cryosat_2",
+          "name": "CryoSat-2",
+          "mass_kg": 684.0,
+          "power_w": 850.0,
+          "kg_per_w": 0.8047058823529412,
+          "source": "eoPortal, CryoSat-2 (Earth Explorer Opportunity Mission-2)"
+         },
+         {
+          "id": "himawari_8",
+          "name": "Himawari-8",
+          "mass_kg": 1300.0,
+          "power_w": 2600.0,
+          "kg_per_w": 0.5,
+          "source": "eoPortal, Himawari-8 and 9; Gunter's Space Page"
+         }
+        ],
+        "power_w": 1700.0,
+        "payload_class": "earth_observation",
+        "extrapolated": false,
+        "bracket_ratio": 3.0588235294117645,
+        "scatter_ratio": 1.852968851786619,
+        "scatter_basis": "local",
+        "n_samples": 4,
+        "refusal_reasons": [],
+        "warnings": []
+       },
+       "mass_interval_kg": [
+        768.5416666666666,
+        1424.083769633508
+       ],
+       "ballistic_coefficient_kg_m2": [
+        659.126643796455,
+        1221.3411403374853
+       ],
+       "delta_v_interval_ms": [
+        231.39880077528414,
+        246.7226218473652
+       ],
+       "propellant_interval_kg": [
+        10.808388597568898,
+        21.343899361822306
+       ],
+       "optimistic": {
+        "verdict": "COMPLIANT_WITH_DISPOSAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "mean",
+        "operational_altitude_km": 786.0,
+        "natural_decay_years": null,
+        "disposal_altitude_km": 361.26953125,
+        "delta_v_ms": 231.39880077528414,
+        "propellant_required_kg": 10.808388597568898,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": 160.76874230596513,
+        "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+        "notes": [
+         "Natural decay does not reenter within 5 years at 786.0 km.",
+         "Highest complying circular altitude is 361.3 km; transfer costs 114.8 + 116.6 = 231.4 m/s.",
+         "For reference, a single-burn drop to a 200 km perigee costs 160.8 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+        ]
+       },
+       "pessimistic": {
+        "verdict": "COMPLIANT_WITH_DISPOSAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "mean",
+        "operational_altitude_km": 786.0,
+        "natural_decay_years": null,
+        "disposal_altitude_km": 334.47265625,
+        "delta_v_ms": 246.7226218473652,
+        "propellant_required_kg": 21.343899361822306,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": 160.76874230596513,
+        "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+        "notes": [
+         "Natural decay does not reenter within 5 years at 786.0 km.",
+         "Highest complying circular altitude is 334.5 km; transfer costs 122.4 + 124.4 = 246.7 m/s.",
+         "For reference, a single-burn drop to a 200 km perigee costs 160.8 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+        ]
+       },
+       "notes": [
+        "Mass bounded to [768.5, 1424] kg (interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)); ballistic coefficient [659.1, 1221] kg/m2."
+       ]
+      }
+     },
+     "high": {
+      "natural_decay_years": null,
+      "compliance": {
+       "verdict": "COMPLIANT_WITH_DISPOSAL",
+       "renderable": true,
+       "mass": {
+        "mass_kg": 1018.4935939145129,
+        "interval_kg": [
+         768.5416666666666,
+         1424.083769633508
+        ],
+        "resolvable": true,
+        "summary": "1018 kg (estimated, 769-1424 kg)",
+        "tag": "estimated",
+        "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+        "provenance": "interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)",
+        "neighbours": [
+         {
+          "id": "cryosat_2",
+          "name": "CryoSat-2",
+          "mass_kg": 684.0,
+          "power_w": 850.0,
+          "kg_per_w": 0.8047058823529412,
+          "source": "eoPortal, CryoSat-2 (Earth Explorer Opportunity Mission-2)"
+         },
+         {
+          "id": "himawari_8",
+          "name": "Himawari-8",
+          "mass_kg": 1300.0,
+          "power_w": 2600.0,
+          "kg_per_w": 0.5,
+          "source": "eoPortal, Himawari-8 and 9; Gunter's Space Page"
+         }
+        ],
+        "power_w": 1700.0,
+        "payload_class": "earth_observation",
+        "extrapolated": false,
+        "bracket_ratio": 3.0588235294117645,
+        "scatter_ratio": 1.852968851786619,
+        "scatter_basis": "local",
+        "n_samples": 4,
+        "refusal_reasons": [],
+        "warnings": []
+       },
+       "mass_interval_kg": [
+        768.5416666666666,
+        1424.083769633508
+       ],
+       "ballistic_coefficient_kg_m2": [
+        659.126643796455,
+        1221.3411403374853
+       ],
+       "delta_v_interval_ms": [
+        191.2226574427541,
+        212.74935982218994
+       ],
+       "propellant_interval_kg": [
+        8.942769302156805,
+        18.423983514649485
+       ],
+       "optimistic": {
+        "verdict": "COMPLIANT_WITH_DISPOSAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "high",
+        "operational_altitude_km": 786.0,
+        "natural_decay_years": null,
+        "disposal_altitude_km": 432.28125,
+        "delta_v_ms": 191.2226574427541,
+        "propellant_required_kg": 8.942769302156805,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": 160.76874230596513,
+        "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+        "notes": [
+         "Natural decay does not reenter within 5 years at 786.0 km.",
+         "Highest complying circular altitude is 432.3 km; transfer costs 95.0 + 96.2 = 191.2 m/s.",
+         "For reference, a single-burn drop to a 200 km perigee costs 160.8 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+        ]
+       },
+       "pessimistic": {
+        "verdict": "COMPLIANT_WITH_DISPOSAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "high",
+        "operational_altitude_km": 786.0,
+        "natural_decay_years": null,
+        "disposal_altitude_km": 394.095703125,
+        "delta_v_ms": 212.74935982218994,
+        "propellant_required_kg": 18.423983514649485,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": 160.76874230596513,
+        "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+        "notes": [
+         "Natural decay does not reenter within 5 years at 786.0 km.",
+         "Highest complying circular altitude is 394.1 km; transfer costs 105.6 + 107.1 = 212.7 m/s.",
+         "For reference, a single-burn drop to a 200 km perigee costs 160.8 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+        ]
+       },
+       "notes": [
+        "Mass bounded to [768.5, 1424] kg (interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)); ballistic coefficient [659.1, 1221] kg/m2."
+       ]
+      }
+     }
+    }
+   },
+   "blocked": null
+  },
+  {
+   "label": "leo-comsat",
+   "prose": "A broadband communications satellite at 550 km, 53 degrees, 4 kW, 5 year mission.",
+   "extraction": {
+    "complete": true,
+    "spec": {
+     "altitude_km": 550.0,
+     "inclination_deg": 53.0,
+     "payload_class": "communications",
+     "power_w": 4000.0,
+     "mission_duration_years": 5.0,
+     "label": "leo-comsat",
+     "provenance": {
+      "altitude_km": "stated",
+      "inclination_deg": "stated",
+      "payload_class": "stated",
+      "power_w": "stated",
+      "mission_duration_years": "stated"
+     }
+    },
+    "questions": [],
+    "discarded": []
+   },
+   "spec": {
+    "altitude_km": 550.0,
+    "inclination_deg": 53.0,
+    "payload_class": "communications",
+    "power_w": 4000.0,
+    "mission_duration_years": 5.0,
+    "label": "leo-comsat",
+    "propellant_available_kg": 40.0,
+    "isp_s": 1666.0,
+    "bus_length_m": 3.0,
+    "bus_width_m": 1.5,
+    "bus_thickness_m": 0.3,
+    "solar_array_span_m": 8.0,
+    "solar_array_chord_m": 1.4,
+    "provenance": {}
+   },
+   "fields": {
+    "altitude_km": {
+     "value": 550.0,
+     "unit": "km",
+     "kind": "stated",
+     "detail": "from the description"
+    },
+    "inclination_deg": {
+     "value": 53.0,
+     "unit": "deg",
+     "kind": "stated",
+     "detail": "sampled latitude for density (PHYSICS.md \u00a710.2)"
+    },
+    "power_w": {
+     "value": 4000.0,
+     "unit": "W",
+     "kind": "stated",
+     "detail": "from the description"
+    },
+    "mission_duration_years": {
+     "value": 5.0,
+     "unit": "yr",
+     "kind": "stated",
+     "detail": "disposal clock starts at end of mission (47 CFR 25.283(e))"
+    },
+    "payload_class": {
+     "value": "communications",
+     "kind": "stated",
+     "detail": "selects the mass-model reference class"
+    },
+    "cd": {
+     "value": 2.2,
+     "kind": "stated",
+     "detail": "Free-molecular convention from data/satellite_specs.json (swept 2.0-2.4 elsewhere). Not a spec input."
+    },
+    "dry_mass_kg": {
+     "value": 1349.6,
+     "unit": "kg",
+     "kind": "estimated",
+     "detail": "interpolated between Intelsat 707 (1450 kg at 3600 W) and Intelsat 15 (1227 kg at 4600 W)",
+     "interval": [
+      1000.6,
+      1611.1
+     ],
+     "sources": [
+      {
+       "name": "Intelsat 707",
+       "mass_kg": 1450.0,
+       "power_w": 3600.0,
+       "kg_per_w": 0.4028,
+       "source": "Wikipedia, Intelsat 707 (infobox)"
+      },
+      {
+       "name": "Intelsat 15",
+       "mass_kg": 1227.0,
+       "power_w": 4600.0,
+       "kg_per_w": 0.2667,
+       "source": "Wikipedia, Intelsat 15 (infobox)"
+      }
+     ]
+    },
+    "ram_area_knife_edge_m2": {
+     "value": 0.53,
+     "unit": "m^2",
+     "kind": "computed",
+     "detail": "sim/geometry.py projected-area solver over the stated 3 x 1.5 x 0.3 m bus plus a 8 x 1.4 m array (minimum-area attitude)"
+    },
+    "ram_area_broadside_m2": {
+     "value": 15.7355,
+     "unit": "m^2",
+     "kind": "computed",
+     "detail": "sim/geometry.py projected-area solver over the stated 3 x 1.5 x 0.3 m bus plus a 8 x 1.4 m array (maximum-area attitude)"
+    },
+    "ballistic_coefficient_kg_m2": {
+     "value": 1157.4,
+     "unit": "kg/m^2",
+     "kind": "estimated",
+     "detail": "m/(Cd*A); inherits the mass interval (sim/bounded.py)",
+     "interval": [
+      858.2,
+      1381.7
+     ]
+    },
+    "cd_times_area_m2": {
+     "value": 1.166,
+     "unit": "m^2",
+     "kind": "computed",
+     "detail": "the only separately observable combination (README central finding)"
+    }
+   },
+   "orbit": {
+    "segments": [
+     [
+      [
+       0.0,
+       0.0
+      ],
+      [
+       1.203,
+       0.806
+      ],
+      [
+       2.406,
+       1.613
+      ],
+      [
+       3.608,
+       2.422
+      ],
+      [
+       4.809,
+       3.233
+      ],
+      [
+       6.009,
+       4.048
+      ],
+      [
+       7.207,
+       4.866
+      ],
+      [
+       8.403,
+       5.689
+      ],
+      [
+       9.598,
+       6.518
+      ],
+      [
+       10.79,
+       7.354
+      ],
+      [
+       11.979,
+       8.197
+      ],
+      [
+       13.164,
+       9.048
+      ],
+      [
+       14.347,
+       9.908
+      ],
+      [
+       15.525,
+       10.779
+      ],
+      [
+       16.699,
+       11.661
+      ],
+      [
+       17.869,
+       12.555
+      ],
+      [
+       19.033,
+       13.462
+      ],
+      [
+       20.192,
+       14.383
+      ],
+      [
+       21.345,
+       15.32
+      ],
+      [
+       22.491,
+       16.273
+      ],
+      [
+       23.63,
+       17.244
+      ],
+      [
+       24.762,
+       18.233
+      ],
+      [
+       25.886,
+       19.242
+      ],
+      [
+       27.001,
+       20.273
+      ],
+      [
+       28.107,
+       21.326
+      ],
+      [
+       29.203,
+       22.403
+      ],
+      [
+       30.289,
+       23.505
+      ],
+      [
+       31.364,
+       24.634
+      ],
+      [
+       32.426,
+       25.791
+      ],
+      [
+       33.476,
+       26.978
+      ],
+      [
+       34.512,
+       28.197
+      ],
+      [
+       35.533,
+       29.448
+      ],
+      [
+       36.539,
+       30.735
+      ],
+      [
+       37.529,
+       32.057
+      ],
+      [
+       38.501,
+       33.417
+      ],
+      [
+       39.454,
+       34.817
+      ],
+      [
+       40.388,
+       36.258
+      ],
+      [
+       41.3,
+       37.742
+      ],
+      [
+       42.19,
+       39.27
+      ],
+      [
+       43.057,
+       40.844
+      ],
+      [
+       43.898,
+       42.466
+      ],
+      [
+       44.713,
+       44.136
+      ],
+      [
+       45.5,
+       45.856
+      ],
+      [
+       46.257,
+       47.626
+      ],
+      [
+       46.983,
+       49.447
+      ],
+      [
+       47.675,
+       51.321
+      ],
+      [
+       48.333,
+       53.246
+      ],
+      [
+       48.955,
+       55.222
+      ],
+      [
+       49.538,
+       57.249
+      ],
+      [
+       50.081,
+       59.326
+      ],
+      [
+       50.583,
+       61.451
+      ],
+      [
+       51.041,
+       63.621
+      ],
+      [
+       51.455,
+       65.835
+      ],
+      [
+       51.822,
+       68.089
+      ],
+      [
+       52.141,
+       70.378
+      ],
+      [
+       52.412,
+       72.7
+      ],
+      [
+       52.632,
+       75.049
+      ],
+      [
+       52.802,
+       77.419
+      ],
+      [
+       52.92,
+       79.806
+      ],
+      [
+       52.985,
+       82.204
+      ],
+      [
+       52.998,
+       84.606
+      ],
+      [
+       52.959,
+       87.007
+      ],
+      [
+       52.867,
+       89.4
+      ],
+      [
+       52.724,
+       91.779
+      ],
+      [
+       52.528,
+       94.14
+      ],
+      [
+       52.283,
+       96.475
+      ],
+      [
+       51.988,
+       98.782
+      ],
+      [
+       51.644,
+       101.054
+      ],
+      [
+       51.254,
+       103.288
+      ],
+      [
+       50.818,
+       105.481
+      ],
+      [
+       50.337,
+       107.628
+      ],
+      [
+       49.815,
+       109.729
+      ],
+      [
+       49.251,
+       111.782
+      ],
+      [
+       48.649,
+       113.784
+      ],
+      [
+       48.009,
+       115.734
+      ],
+      [
+       47.333,
+       117.633
+      ],
+      [
+       46.624,
+       119.481
+      ],
+      [
+       45.882,
+       121.277
+      ],
+      [
+       45.11,
+       123.022
+      ],
+      [
+       44.309,
+       124.716
+      ],
+      [
+       43.481,
+       126.362
+      ],
+      [
+       42.627,
+       127.96
+      ],
+      [
+       41.748,
+       129.511
+      ],
+      [
+       40.847,
+       131.017
+      ],
+      [
+       39.923,
+       132.479
+      ],
+      [
+       38.98,
+       133.899
+      ],
+      [
+       38.017,
+       135.279
+      ],
+      [
+       37.036,
+       136.62
+      ],
+      [
+       36.038,
+       137.924
+      ],
+      [
+       35.024,
+       139.193
+      ],
+      [
+       33.995,
+       140.427
+      ],
+      [
+       32.952,
+       141.63
+      ],
+      [
+       31.896,
+       142.802
+      ],
+      [
+       30.828,
+       143.945
+      ],
+      [
+       29.748,
+       145.061
+      ],
+      [
+       28.657,
+       146.15
+      ],
+      [
+       27.555,
+       147.215
+      ],
+      [
+       26.445,
+       148.256
+      ],
+      [
+       25.325,
+       149.276
+      ],
+      [
+       24.197,
+       150.275
+      ],
+      [
+       23.061,
+       151.255
+      ],
+      [
+       21.919,
+       152.217
+      ],
+      [
+       20.769,
+       153.161
+      ],
+      [
+       19.613,
+       154.09
+      ],
+      [
+       18.452,
+       155.004
+      ],
+      [
+       17.285,
+       155.905
+      ],
+      [
+       16.113,
+       156.792
+      ],
+      [
+       14.936,
+       157.669
+      ],
+      [
+       13.756,
+       158.534
+      ],
+      [
+       12.572,
+       159.39
+      ],
+      [
+       11.385,
+       160.237
+      ],
+      [
+       10.194,
+       161.076
+      ],
+      [
+       9.001,
+       161.908
+      ],
+      [
+       7.805,
+       162.734
+      ],
+      [
+       6.608,
+       163.555
+      ],
+      [
+       5.409,
+       164.371
+      ],
+      [
+       4.208,
+       165.184
+      ],
+      [
+       3.007,
+       165.994
+      ],
+      [
+       1.804,
+       166.801
+      ],
+      [
+       0.601,
+       167.608
+      ],
+      [
+       -0.601,
+       168.414
+      ],
+      [
+       -1.804,
+       169.221
+      ],
+      [
+       -3.007,
+       170.029
+      ],
+      [
+       -4.208,
+       170.838
+      ],
+      [
+       -5.409,
+       171.651
+      ],
+      [
+       -6.608,
+       172.467
+      ],
+      [
+       -7.805,
+       173.288
+      ],
+      [
+       -9.001,
+       174.114
+      ],
+      [
+       -10.194,
+       174.946
+      ],
+      [
+       -11.385,
+       175.785
+      ],
+      [
+       -12.572,
+       176.632
+      ],
+      [
+       -13.756,
+       177.488
+      ],
+      [
+       -14.936,
+       178.354
+      ],
+      [
+       -16.113,
+       179.23
+      ]
+     ],
+     [
+      [
+       -17.285,
+       -179.883
+      ],
+      [
+       -18.452,
+       -178.982
+      ],
+      [
+       -19.613,
+       -178.068
+      ],
+      [
+       -20.769,
+       -177.139
+      ],
+      [
+       -21.919,
+       -176.195
+      ],
+      [
+       -23.061,
+       -175.233
+      ],
+      [
+       -24.197,
+       -174.253
+      ],
+      [
+       -25.325,
+       -173.254
+      ],
+      [
+       -26.445,
+       -172.234
+      ],
+      [
+       -27.555,
+       -171.193
+      ],
+      [
+       -28.657,
+       -170.128
+      ],
+      [
+       -29.748,
+       -169.038
+      ],
+      [
+       -30.828,
+       -167.923
+      ],
+      [
+       -31.896,
+       -166.78
+      ],
+      [
+       -32.952,
+       -165.608
+      ],
+      [
+       -33.995,
+       -164.405
+      ],
+      [
+       -35.024,
+       -163.17
+      ],
+      [
+       -36.038,
+       -161.902
+      ],
+      [
+       -37.036,
+       -160.598
+      ],
+      [
+       -38.017,
+       -159.257
+      ],
+      [
+       -38.98,
+       -157.877
+      ],
+      [
+       -39.923,
+       -156.457
+      ],
+      [
+       -40.847,
+       -154.994
+      ],
+      [
+       -41.748,
+       -153.489
+      ],
+      [
+       -42.627,
+       -151.938
+      ],
+      [
+       -43.481,
+       -150.34
+      ],
+      [
+       -44.309,
+       -148.694
+      ],
+      [
+       -45.11,
+       -147.0
+      ],
+      [
+       -45.882,
+       -145.255
+      ],
+      [
+       -46.624,
+       -143.459
+      ],
+      [
+       -47.333,
+       -141.611
+      ],
+      [
+       -48.009,
+       -139.712
+      ],
+      [
+       -48.649,
+       -137.761
+      ],
+      [
+       -49.251,
+       -135.76
+      ],
+      [
+       -49.815,
+       -133.707
+      ],
+      [
+       -50.337,
+       -131.606
+      ],
+      [
+       -50.818,
+       -129.458
+      ],
+      [
+       -51.254,
+       -127.266
+      ],
+      [
+       -51.644,
+       -125.032
+      ],
+      [
+       -51.988,
+       -122.76
+      ],
+      [
+       -52.283,
+       -120.453
+      ],
+      [
+       -52.528,
+       -118.118
+      ],
+      [
+       -52.724,
+       -115.757
+      ],
+      [
+       -52.867,
+       -113.378
+      ],
+      [
+       -52.959,
+       -110.985
+      ],
+      [
+       -52.998,
+       -108.584
+      ],
+      [
+       -52.985,
+       -106.182
+      ],
+      [
+       -52.92,
+       -103.784
+      ],
+      [
+       -52.802,
+       -101.397
+      ],
+      [
+       -52.632,
+       -99.027
+      ],
+      [
+       -52.412,
+       -96.678
+      ],
+      [
+       -52.141,
+       -94.356
+      ],
+      [
+       -51.822,
+       -92.067
+      ],
+      [
+       -51.455,
+       -89.813
+      ],
+      [
+       -51.041,
+       -87.599
+      ],
+      [
+       -50.583,
+       -85.429
+      ],
+      [
+       -50.081,
+       -83.304
+      ],
+      [
+       -49.538,
+       -81.227
+      ],
+      [
+       -48.955,
+       -79.2
+      ],
+      [
+       -48.333,
+       -77.224
+      ],
+      [
+       -47.675,
+       -75.299
+      ],
+      [
+       -46.983,
+       -73.425
+      ],
+      [
+       -46.257,
+       -71.604
+      ],
+      [
+       -45.5,
+       -69.834
+      ],
+      [
+       -44.713,
+       -68.114
+      ],
+      [
+       -43.898,
+       -66.444
+      ],
+      [
+       -43.057,
+       -64.822
+      ],
+      [
+       -42.19,
+       -63.248
+      ],
+      [
+       -41.3,
+       -61.72
+      ],
+      [
+       -40.388,
+       -60.236
+      ],
+      [
+       -39.454,
+       -58.795
+      ],
+      [
+       -38.501,
+       -57.395
+      ],
+      [
+       -37.529,
+       -56.035
+      ],
+      [
+       -36.539,
+       -54.713
+      ],
+      [
+       -35.533,
+       -53.426
+      ],
+      [
+       -34.512,
+       -52.175
+      ],
+      [
+       -33.476,
+       -50.956
+      ],
+      [
+       -32.426,
+       -49.769
+      ],
+      [
+       -31.364,
+       -48.612
+      ],
+      [
+       -30.289,
+       -47.483
+      ],
+      [
+       -29.203,
+       -46.381
+      ],
+      [
+       -28.107,
+       -45.304
+      ],
+      [
+       -27.001,
+       -44.251
+      ],
+      [
+       -25.886,
+       -43.22
+      ],
+      [
+       -24.762,
+       -42.211
+      ],
+      [
+       -23.63,
+       -41.222
+      ],
+      [
+       -22.491,
+       -40.251
+      ],
+      [
+       -21.345,
+       -39.298
+      ],
+      [
+       -20.192,
+       -38.361
+      ],
+      [
+       -19.033,
+       -37.44
+      ],
+      [
+       -17.869,
+       -36.533
+      ],
+      [
+       -16.699,
+       -35.639
+      ],
+      [
+       -15.525,
+       -34.757
+      ],
+      [
+       -14.347,
+       -33.886
+      ],
+      [
+       -13.164,
+       -33.026
+      ],
+      [
+       -11.979,
+       -32.175
+      ],
+      [
+       -10.79,
+       -31.332
+      ],
+      [
+       -9.598,
+       -30.496
+      ],
+      [
+       -8.403,
+       -29.667
+      ],
+      [
+       -7.207,
+       -28.844
+      ],
+      [
+       -6.009,
+       -28.026
+      ],
+      [
+       -4.809,
+       -27.211
+      ],
+      [
+       -3.608,
+       -26.4
+      ],
+      [
+       -2.406,
+       -25.591
+      ],
+      [
+       -1.203,
+       -24.784
+      ],
+      [
+       -0.0,
+       -23.978
+      ]
+     ]
+    ],
+    "altitude_km": 550.0,
+    "period_minutes": 95.65,
+    "note": "Ground track is illustrative display geometry. Inclination and altitude are the spec's and the period is computed from them, but lat/lon modelling is outside the validated physics (PHYSICS.md \u00a71)."
+   },
+   "compliance": {
+    "verdict": "COMPLIANT_WITH_DISPOSAL",
+    "renderable": true,
+    "mass": {
+     "mass_kg": 1349.5699248141777,
+     "interval_kg": [
+      1000.6250000000001,
+      1611.111111111111
+     ],
+     "resolvable": true,
+     "summary": "1350 kg (estimated, 1001-1611 kg)",
+     "tag": "estimated",
+     "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+     "provenance": "interpolated between Intelsat 707 (1450 kg at 3600 W) and Intelsat 15 (1227 kg at 4600 W)",
+     "neighbours": [
+      {
+       "id": "intelsat_707",
+       "name": "Intelsat 707",
+       "mass_kg": 1450.0,
+       "power_w": 3600.0,
+       "kg_per_w": 0.4027777777777778,
+       "source": "Wikipedia, Intelsat 707 (infobox)"
+      },
+      {
+       "id": "intelsat_15",
+       "name": "Intelsat 15",
+       "mass_kg": 1227.0,
+       "power_w": 4600.0,
+       "kg_per_w": 0.2667391304347826,
+       "source": "Wikipedia, Intelsat 15 (infobox)"
+      }
+     ],
+     "power_w": 4000.0,
+     "payload_class": "communications",
+     "extrapolated": false,
+     "bracket_ratio": 1.2777777777777777,
+     "scatter_ratio": 1.6101047956138523,
+     "scatter_basis": "class",
+     "n_samples": 3,
+     "refusal_reasons": [],
+     "warnings": [
+      "only 3 comparable spacecraft within 4x of 4000 W, below the 4 needed to measure local scatter. The class-wide spread was used instead, which is wider and less specific but does not manufacture confidence the table cannot support."
+     ]
+    },
+    "mass_interval_kg": [
+     1000.6250000000001,
+     1611.111111111111
+    ],
+    "ballistic_coefficient_kg_m2": [
+     858.1689536878216,
+     1381.7419477796834
+    ],
+    "delta_v_interval_ms": [
+     111.62601805660051,
+     123.71664679746391
+    ],
+    "propellant_interval_kg": [
+     6.813312822623134,
+     12.153872511995043
+    ],
+    "optimistic": {
+     "verdict": "COMPLIANT_WITH_DISPOSAL",
+     "renderable": true,
+     "rule": {
+      "id": "fcc_5yr",
+      "label": "FCC 5-year rule",
+      "citation": "47 CFR \u00a7 25.283(e)",
+      "window_years": 5.0
+     },
+     "solar_activity": "mean",
+     "operational_altitude_km": 550.0,
+     "natural_decay_years": null,
+     "disposal_altitude_km": 350.48828125,
+     "delta_v_ms": 111.62601805660051,
+     "propellant_required_kg": 6.813312822623134,
+     "propellant_available_kg": 40.0,
+     "perigee_lowering_delta_v_ms": 98.92463419199612,
+     "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+     "notes": [
+      "Natural decay does not reenter within 5 years at 550.0 km.",
+      "Highest complying circular altitude is 350.5 km; transfer costs 55.6 + 56.0 = 111.6 m/s.",
+      "For reference, a single-burn drop to a 200 km perigee costs 98.9 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+     ]
+    },
+    "pessimistic": {
+     "verdict": "COMPLIANT_WITH_DISPOSAL",
+     "renderable": true,
+     "rule": {
+      "id": "fcc_5yr",
+      "label": "FCC 5-year rule",
+      "citation": "47 CFR \u00a7 25.283(e)",
+      "window_years": 5.0
+     },
+     "solar_activity": "mean",
+     "operational_altitude_km": 550.0,
+     "natural_decay_years": null,
+     "disposal_altitude_km": 329.39453125,
+     "delta_v_ms": 123.71664679746391,
+     "propellant_required_kg": 12.153872511995043,
+     "propellant_available_kg": 40.0,
+     "perigee_lowering_delta_v_ms": 98.92463419199612,
+     "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+     "notes": [
+      "Natural decay does not reenter within 5 years at 550.0 km.",
+      "Highest complying circular altitude is 329.4 km; transfer costs 61.6 + 62.1 = 123.7 m/s.",
+      "For reference, a single-burn drop to a 200 km perigee costs 98.9 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+     ]
+    },
+    "notes": [
+     "Mass bounded to [1001, 1611] kg (interpolated between Intelsat 707 (1450 kg at 3600 W) and Intelsat 15 (1227 kg at 4600 W)); ballistic coefficient [858.2, 1382] kg/m2.",
+     "only 3 comparable spacecraft within 4x of 4000 W, below the 4 needed to measure local scatter. The class-wide spread was used instead, which is wider and less specific but does not manufacture confidence the table cannot support."
+    ]
+   },
+   "solar_band": {
+    "caveat": "Bounds, not scenarios. Each level holds solar activity fixed at a percentile of the 1957-onward observed record for the whole run. No real 25-year period sits at one level -- the solar cycle is ~11 years, so a sustained solar maximum is physically impossible, not merely unlikely. Read low/high as bounds the true answer lies between, and never as best-case and worst-case futures.",
+    "percentiles": {
+     "low": 5.0,
+     "mean": 50.0,
+     "high": 95.0
+    },
+    "levels": {
+     "low": {
+      "natural_decay_years": null,
+      "compliance": {
+       "verdict": "COMPLIANT_WITH_DISPOSAL",
+       "renderable": true,
+       "mass": {
+        "mass_kg": 1349.5699248141777,
+        "interval_kg": [
+         1000.6250000000001,
+         1611.111111111111
+        ],
+        "resolvable": true,
+        "summary": "1350 kg (estimated, 1001-1611 kg)",
+        "tag": "estimated",
+        "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+        "provenance": "interpolated between Intelsat 707 (1450 kg at 3600 W) and Intelsat 15 (1227 kg at 4600 W)",
+        "neighbours": [
+         {
+          "id": "intelsat_707",
+          "name": "Intelsat 707",
+          "mass_kg": 1450.0,
+          "power_w": 3600.0,
+          "kg_per_w": 0.4027777777777778,
+          "source": "Wikipedia, Intelsat 707 (infobox)"
+         },
+         {
+          "id": "intelsat_15",
+          "name": "Intelsat 15",
+          "mass_kg": 1227.0,
+          "power_w": 4600.0,
+          "kg_per_w": 0.2667391304347826,
+          "source": "Wikipedia, Intelsat 15 (infobox)"
+         }
+        ],
+        "power_w": 4000.0,
+        "payload_class": "communications",
+        "extrapolated": false,
+        "bracket_ratio": 1.2777777777777777,
+        "scatter_ratio": 1.6101047956138523,
+        "scatter_basis": "class",
+        "n_samples": 3,
+        "refusal_reasons": [],
+        "warnings": [
+         "only 3 comparable spacecraft within 4x of 4000 W, below the 4 needed to measure local scatter. The class-wide spread was used instead, which is wider and less specific but does not manufacture confidence the table cannot support."
+        ]
+       },
+       "mass_interval_kg": [
+        1000.6250000000001,
+        1611.111111111111
+       ],
+       "ballistic_coefficient_kg_m2": [
+        858.1689536878216,
+        1381.7419477796834
+       ],
+       "delta_v_interval_ms": [
+        129.27711296598318,
+        138.90972629951557
+       ],
+       "propellant_interval_kg": [
+        7.8864259240109,
+        13.64009925321855
+       ],
+       "optimistic": {
+        "verdict": "COMPLIANT_WITH_DISPOSAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "low",
+        "operational_altitude_km": 550.0,
+        "natural_decay_years": null,
+        "disposal_altitude_km": 319.7265625,
+        "delta_v_ms": 129.27711296598318,
+        "propellant_required_kg": 7.8864259240109,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": 98.92463419199612,
+        "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+        "notes": [
+         "Natural decay does not reenter within 5 years at 550.0 km.",
+         "Highest complying circular altitude is 319.7 km; transfer costs 64.4 + 64.9 = 129.3 m/s.",
+         "For reference, a single-burn drop to a 200 km perigee costs 98.9 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+        ]
+       },
+       "pessimistic": {
+        "verdict": "COMPLIANT_WITH_DISPOSAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "low",
+        "operational_altitude_km": 550.0,
+        "natural_decay_years": null,
+        "disposal_altitude_km": 303.02734375,
+        "delta_v_ms": 138.90972629951557,
+        "propellant_required_kg": 13.64009925321855,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": 98.92463419199612,
+        "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+        "notes": [
+         "Natural decay does not reenter within 5 years at 550.0 km.",
+         "Highest complying circular altitude is 303.0 km; transfer costs 69.1 + 69.8 = 138.9 m/s.",
+         "For reference, a single-burn drop to a 200 km perigee costs 98.9 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+        ]
+       },
+       "notes": [
+        "Mass bounded to [1001, 1611] kg (interpolated between Intelsat 707 (1450 kg at 3600 W) and Intelsat 15 (1227 kg at 4600 W)); ballistic coefficient [858.2, 1382] kg/m2.",
+        "only 3 comparable spacecraft within 4x of 4000 W, below the 4 needed to measure local scatter. The class-wide spread was used instead, which is wider and less specific but does not manufacture confidence the table cannot support."
+       ]
+      }
+     },
+     "mean": {
+      "natural_decay_years": null,
+      "compliance": {
+       "verdict": "COMPLIANT_WITH_DISPOSAL",
+       "renderable": true,
+       "mass": {
+        "mass_kg": 1349.5699248141777,
+        "interval_kg": [
+         1000.6250000000001,
+         1611.111111111111
+        ],
+        "resolvable": true,
+        "summary": "1350 kg (estimated, 1001-1611 kg)",
+        "tag": "estimated",
+        "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+        "provenance": "interpolated between Intelsat 707 (1450 kg at 3600 W) and Intelsat 15 (1227 kg at 4600 W)",
+        "neighbours": [
+         {
+          "id": "intelsat_707",
+          "name": "Intelsat 707",
+          "mass_kg": 1450.0,
+          "power_w": 3600.0,
+          "kg_per_w": 0.4027777777777778,
+          "source": "Wikipedia, Intelsat 707 (infobox)"
+         },
+         {
+          "id": "intelsat_15",
+          "name": "Intelsat 15",
+          "mass_kg": 1227.0,
+          "power_w": 4600.0,
+          "kg_per_w": 0.2667391304347826,
+          "source": "Wikipedia, Intelsat 15 (infobox)"
+         }
+        ],
+        "power_w": 4000.0,
+        "payload_class": "communications",
+        "extrapolated": false,
+        "bracket_ratio": 1.2777777777777777,
+        "scatter_ratio": 1.6101047956138523,
+        "scatter_basis": "class",
+        "n_samples": 3,
+        "refusal_reasons": [],
+        "warnings": [
+         "only 3 comparable spacecraft within 4x of 4000 W, below the 4 needed to measure local scatter. The class-wide spread was used instead, which is wider and less specific but does not manufacture confidence the table cannot support."
+        ]
+       },
+       "mass_interval_kg": [
+        1000.6250000000001,
+        1611.111111111111
+       ],
+       "ballistic_coefficient_kg_m2": [
+        858.1689536878216,
+        1381.7419477796834
+       ],
+       "delta_v_interval_ms": [
+        111.62601805660051,
+        123.71664679746391
+       ],
+       "propellant_interval_kg": [
+        6.813312822623134,
+        12.153872511995043
+       ],
+       "optimistic": {
+        "verdict": "COMPLIANT_WITH_DISPOSAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "mean",
+        "operational_altitude_km": 550.0,
+        "natural_decay_years": null,
+        "disposal_altitude_km": 350.48828125,
+        "delta_v_ms": 111.62601805660051,
+        "propellant_required_kg": 6.813312822623134,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": 98.92463419199612,
+        "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+        "notes": [
+         "Natural decay does not reenter within 5 years at 550.0 km.",
+         "Highest complying circular altitude is 350.5 km; transfer costs 55.6 + 56.0 = 111.6 m/s.",
+         "For reference, a single-burn drop to a 200 km perigee costs 98.9 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+        ]
+       },
+       "pessimistic": {
+        "verdict": "COMPLIANT_WITH_DISPOSAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "mean",
+        "operational_altitude_km": 550.0,
+        "natural_decay_years": null,
+        "disposal_altitude_km": 329.39453125,
+        "delta_v_ms": 123.71664679746391,
+        "propellant_required_kg": 12.153872511995043,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": 98.92463419199612,
+        "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+        "notes": [
+         "Natural decay does not reenter within 5 years at 550.0 km.",
+         "Highest complying circular altitude is 329.4 km; transfer costs 61.6 + 62.1 = 123.7 m/s.",
+         "For reference, a single-burn drop to a 200 km perigee costs 98.9 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+        ]
+       },
+       "notes": [
+        "Mass bounded to [1001, 1611] kg (interpolated between Intelsat 707 (1450 kg at 3600 W) and Intelsat 15 (1227 kg at 4600 W)); ballistic coefficient [858.2, 1382] kg/m2.",
+        "only 3 comparable spacecraft within 4x of 4000 W, below the 4 needed to measure local scatter. The class-wide spread was used instead, which is wider and less specific but does not manufacture confidence the table cannot support."
+       ]
+      }
+     },
+     "high": {
+      "natural_decay_years": [
+       32.38,
+       52.13
+      ],
+      "compliance": {
+       "verdict": "COMPLIANT_WITH_DISPOSAL",
+       "renderable": true,
+       "mass": {
+        "mass_kg": 1349.5699248141777,
+        "interval_kg": [
+         1000.6250000000001,
+         1611.111111111111
+        ],
+        "resolvable": true,
+        "summary": "1350 kg (estimated, 1001-1611 kg)",
+        "tag": "estimated",
+        "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+        "provenance": "interpolated between Intelsat 707 (1450 kg at 3600 W) and Intelsat 15 (1227 kg at 4600 W)",
+        "neighbours": [
+         {
+          "id": "intelsat_707",
+          "name": "Intelsat 707",
+          "mass_kg": 1450.0,
+          "power_w": 3600.0,
+          "kg_per_w": 0.4027777777777778,
+          "source": "Wikipedia, Intelsat 707 (infobox)"
+         },
+         {
+          "id": "intelsat_15",
+          "name": "Intelsat 15",
+          "mass_kg": 1227.0,
+          "power_w": 4600.0,
+          "kg_per_w": 0.2667391304347826,
+          "source": "Wikipedia, Intelsat 15 (infobox)"
+         }
+        ],
+        "power_w": 4000.0,
+        "payload_class": "communications",
+        "extrapolated": false,
+        "bracket_ratio": 1.2777777777777777,
+        "scatter_ratio": 1.6101047956138523,
+        "scatter_basis": "class",
+        "n_samples": 3,
+        "refusal_reasons": [],
+        "warnings": [
+         "only 3 comparable spacecraft within 4x of 4000 W, below the 4 needed to measure local scatter. The class-wide spread was used instead, which is wider and less specific but does not manufacture confidence the table cannot support."
+        ]
+       },
+       "mass_interval_kg": [
+        1000.6250000000001,
+        1611.111111111111
+       ],
+       "ballistic_coefficient_kg_m2": [
+        858.1689536878216,
+        1381.7419477796834
+       ],
+       "delta_v_interval_ms": [
+        72.22332731390543,
+        88.60937417835066
+       ],
+       "propellant_interval_kg": [
+        4.413606395127575,
+        8.714296084962449
+       ],
+       "optimistic": {
+        "verdict": "COMPLIANT_WITH_DISPOSAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "high",
+        "operational_altitude_km": 550.0,
+        "natural_decay_years": null,
+        "disposal_altitude_km": 419.921875,
+        "delta_v_ms": 72.22332731390543,
+        "propellant_required_kg": 4.413606395127575,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": 98.92463419199612,
+        "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+        "notes": [
+         "Natural decay does not reenter within 5 years at 550.0 km.",
+         "Highest complying circular altitude is 419.9 km; transfer costs 36.0 + 36.2 = 72.2 m/s.",
+         "For reference, a single-burn drop to a 200 km perigee costs 98.9 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+        ]
+       },
+       "pessimistic": {
+        "verdict": "COMPLIANT_WITH_DISPOSAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "high",
+        "operational_altitude_km": 550.0,
+        "natural_decay_years": null,
+        "disposal_altitude_km": 390.91796875,
+        "delta_v_ms": 88.60937417835066,
+        "propellant_required_kg": 8.714296084962449,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": 98.92463419199612,
+        "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+        "notes": [
+         "Natural decay does not reenter within 5 years at 550.0 km.",
+         "Highest complying circular altitude is 390.9 km; transfer costs 44.2 + 44.4 = 88.6 m/s.",
+         "For reference, a single-burn drop to a 200 km perigee costs 98.9 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+        ]
+       },
+       "notes": [
+        "Mass bounded to [1001, 1611] kg (interpolated between Intelsat 707 (1450 kg at 3600 W) and Intelsat 15 (1227 kg at 4600 W)); ballistic coefficient [858.2, 1382] kg/m2.",
+        "only 3 comparable spacecraft within 4x of 4000 W, below the 4 needed to measure local scatter. The class-wide spread was used instead, which is wider and less specific but does not manufacture confidence the table cannot support."
+       ]
+      }
+     }
+    }
+   },
+   "blocked": null
+  },
+  {
+   "label": "microsat-unresolvable-mass",
+   "prose": "A small imaging microsatellite at 620 km, 80 degrees, 320 W, 4 year mission.",
+   "extraction": {
+    "complete": true,
+    "spec": {
+     "altitude_km": 620.0,
+     "inclination_deg": 80.0,
+     "payload_class": "earth_observation",
+     "power_w": 320.0,
+     "mission_duration_years": 4.0,
+     "label": "microsat-unresolvable-mass",
+     "provenance": {
+      "altitude_km": "stated",
+      "inclination_deg": "stated",
+      "payload_class": "stated",
+      "power_w": "stated",
+      "mission_duration_years": "stated"
+     }
+    },
+    "questions": [],
+    "discarded": []
+   },
+   "spec": {
+    "altitude_km": 620.0,
+    "inclination_deg": 80.0,
+    "payload_class": "earth_observation",
+    "power_w": 320.0,
+    "mission_duration_years": 4.0,
+    "label": "microsat-unresolvable-mass",
+    "propellant_available_kg": 40.0,
+    "isp_s": 1666.0,
+    "bus_length_m": 3.0,
+    "bus_width_m": 1.5,
+    "bus_thickness_m": 0.3,
+    "solar_array_span_m": 8.0,
+    "solar_array_chord_m": 1.4,
+    "provenance": {}
+   },
+   "fields": {
+    "altitude_km": {
+     "value": 620.0,
+     "unit": "km",
+     "kind": "stated",
+     "detail": "from the description"
+    },
+    "inclination_deg": {
+     "value": 80.0,
+     "unit": "deg",
+     "kind": "stated",
+     "detail": "sampled latitude for density (PHYSICS.md \u00a710.2)"
+    },
+    "power_w": {
+     "value": 320.0,
+     "unit": "W",
+     "kind": "stated",
+     "detail": "from the description"
+    },
+    "mission_duration_years": {
+     "value": 4.0,
+     "unit": "yr",
+     "kind": "stated",
+     "detail": "disposal clock starts at end of mission (47 CFR 25.283(e))"
+    },
+    "payload_class": {
+     "value": "earth_observation",
+     "kind": "stated",
+     "detail": "selects the mass-model reference class"
+    },
+    "cd": {
+     "value": 2.2,
+     "kind": "stated",
+     "detail": "Free-molecular convention from data/satellite_specs.json (swept 2.0-2.4 elsewhere). Not a spec input."
+    },
+    "dry_mass_kg": {
+     "value": null,
+     "unit": "kg",
+     "kind": "refused",
+     "detail": "the bracketing spacecraft are 42x apart in power (Dove-3 (Planet Flock) at 20 W, CryoSat-2 at 850 W), above the 4x limit. They are in different design regimes, so the power law between them is not a local one. comparable spacecraft vary by 3.6x in kg/W (class basis, n=6), above the 2.0x limit. At this spread power does not determine mass, so no interpolation on power can resolve it.",
+     "interval": [
+      83.2,
+      300.6
+     ],
+     "sources": [
+      {
+       "name": "Dove-3 (Planet Flock)",
+       "mass_kg": 5.2,
+       "power_w": 20.0,
+       "kg_per_w": 0.26,
+       "source": "Gunter's Space Page (space.skyrocket.de/doc_sdat/dove-3.htm); eoPortal Planet/Flock"
+      },
+      {
+       "name": "CryoSat-2",
+       "mass_kg": 684.0,
+       "power_w": 850.0,
+       "kg_per_w": 0.8047,
+       "source": "eoPortal, CryoSat-2 (Earth Explorer Opportunity Mission-2)"
+      }
+     ]
+    },
+    "ram_area_knife_edge_m2": {
+     "value": 0.53,
+     "unit": "m^2",
+     "kind": "computed",
+     "detail": "sim/geometry.py projected-area solver over the stated 3 x 1.5 x 0.3 m bus plus a 8 x 1.4 m array (minimum-area attitude)"
+    },
+    "ram_area_broadside_m2": {
+     "value": 15.7355,
+     "unit": "m^2",
+     "kind": "computed",
+     "detail": "sim/geometry.py projected-area solver over the stated 3 x 1.5 x 0.3 m bus plus a 8 x 1.4 m array (maximum-area attitude)"
+    },
+    "ballistic_coefficient_kg_m2": {
+     "value": null,
+     "unit": "kg/m^2",
+     "kind": "refused",
+     "detail": "m/(Cd*A); inherits the mass interval (sim/bounded.py)",
+     "interval": [
+      71.4,
+      257.8
+     ]
+    },
+    "cd_times_area_m2": {
+     "value": 1.166,
+     "unit": "m^2",
+     "kind": "computed",
+     "detail": "the only separately observable combination (README central finding)"
+    }
+   },
+   "orbit": {
+    "segments": [
+     [
+      [
+       0.0,
+       0.0
+      ],
+      [
+       1.483,
+       0.16
+      ],
+      [
+       2.967,
+       0.32
+      ],
+      [
+       4.45,
+       0.481
+      ],
+      [
+       5.933,
+       0.643
+      ],
+      [
+       7.416,
+       0.806
+      ],
+      [
+       8.899,
+       0.971
+      ],
+      [
+       10.382,
+       1.138
+      ],
+      [
+       11.864,
+       1.308
+      ],
+      [
+       13.347,
+       1.481
+      ],
+      [
+       14.829,
+       1.657
+      ],
+      [
+       16.31,
+       1.837
+      ],
+      [
+       17.791,
+       2.022
+      ],
+      [
+       19.272,
+       2.211
+      ],
+      [
+       20.753,
+       2.405
+      ],
+      [
+       22.232,
+       2.605
+      ],
+      [
+       23.712,
+       2.812
+      ],
+      [
+       25.19,
+       3.026
+      ],
+      [
+       26.668,
+       3.247
+      ],
+      [
+       28.145,
+       3.478
+      ],
+      [
+       29.622,
+       3.717
+      ],
+      [
+       31.097,
+       3.966
+      ],
+      [
+       32.572,
+       4.227
+      ],
+      [
+       34.045,
+       4.5
+      ],
+      [
+       35.517,
+       4.786
+      ],
+      [
+       36.988,
+       5.086
+      ],
+      [
+       38.458,
+       5.402
+      ],
+      [
+       39.926,
+       5.736
+      ],
+      [
+       41.392,
+       6.089
+      ],
+      [
+       42.856,
+       6.462
+      ],
+      [
+       44.319,
+       6.859
+      ],
+      [
+       45.779,
+       7.282
+      ],
+      [
+       47.236,
+       7.732
+      ],
+      [
+       48.691,
+       8.214
+      ],
+      [
+       50.143,
+       8.73
+      ],
+      [
+       51.591,
+       9.285
+      ],
+      [
+       53.035,
+       9.883
+      ],
+      [
+       54.475,
+       10.53
+      ],
+      [
+       55.91,
+       11.231
+      ],
+      [
+       57.339,
+       11.994
+      ],
+      [
+       58.762,
+       12.827
+      ],
+      [
+       60.177,
+       13.739
+      ],
+      [
+       61.584,
+       14.742
+      ],
+      [
+       62.982,
+       15.85
+      ],
+      [
+       64.367,
+       17.079
+      ],
+      [
+       65.74,
+       18.449
+      ],
+      [
+       67.097,
+       19.983
+      ],
+      [
+       68.435,
+       21.71
+      ],
+      [
+       69.751,
+       23.664
+      ],
+      [
+       71.039,
+       25.889
+      ],
+      [
+       72.295,
+       28.434
+      ],
+      [
+       73.51,
+       31.363
+      ],
+      [
+       74.674,
+       34.75
+      ],
+      [
+       75.776,
+       38.678
+      ],
+      [
+       76.8,
+       43.242
+      ],
+      [
+       77.725,
+       48.536
+      ],
+      [
+       78.529,
+       54.631
+      ],
+      [
+       79.184,
+       61.555
+      ],
+      [
+       79.662,
+       69.244
+      ],
+      [
+       79.937,
+       77.512
+      ],
+      [
+       79.993,
+       86.057
+      ],
+      [
+       79.826,
+       94.507
+      ],
+      [
+       79.447,
+       102.517
+      ],
+      [
+       78.877,
+       109.838
+      ],
+      [
+       78.144,
+       116.349
+      ],
+      [
+       77.276,
+       122.036
+      ],
+      [
+       76.299,
+       126.954
+      ],
+      [
+       75.234,
+       131.189
+      ],
+      [
+       74.099,
+       134.835
+      ],
+      [
+       72.908,
+       137.982
+      ],
+      [
+       71.671,
+       140.711
+      ],
+      [
+       70.399,
+       143.089
+      ],
+      [
+       69.096,
+       145.173
+      ],
+      [
+       67.768,
+       147.009
+      ],
+      [
+       66.421,
+       148.635
+      ],
+      [
+       65.056,
+       150.084
+      ],
+      [
+       63.676,
+       151.38
+      ],
+      [
+       62.284,
+       152.547
+      ],
+      [
+       60.882,
+       153.601
+      ],
+      [
+       59.47,
+       154.557
+      ],
+      [
+       58.051,
+       155.428
+      ],
+      [
+       56.625,
+       156.225
+      ],
+      [
+       55.193,
+       156.956
+      ],
+      [
+       53.755,
+       157.629
+      ],
+      [
+       52.313,
+       158.25
+      ],
+      [
+       50.867,
+       158.826
+      ],
+      [
+       49.417,
+       159.362
+      ],
+      [
+       47.964,
+       159.86
+      ],
+      [
+       46.508,
+       160.326
+      ],
+      [
+       45.049,
+       160.762
+      ],
+      [
+       43.588,
+       161.171
+      ],
+      [
+       42.124,
+       161.556
+      ],
+      [
+       40.659,
+       161.919
+      ],
+      [
+       39.192,
+       162.262
+      ],
+      [
+       37.723,
+       162.587
+      ],
+      [
+       36.253,
+       162.895
+      ],
+      [
+       34.781,
+       163.188
+      ],
+      [
+       33.308,
+       163.467
+      ],
+      [
+       31.835,
+       163.734
+      ],
+      [
+       30.36,
+       163.989
+      ],
+      [
+       28.884,
+       164.233
+      ],
+      [
+       27.407,
+       164.467
+      ],
+      [
+       25.929,
+       164.693
+      ],
+      [
+       24.451,
+       164.911
+      ],
+      [
+       22.972,
+       165.121
+      ],
+      [
+       21.493,
+       165.324
+      ],
+      [
+       20.012,
+       165.522
+      ],
+      [
+       18.532,
+       165.713
+      ],
+      [
+       17.051,
+       165.9
+      ],
+      [
+       15.569,
+       166.082
+      ],
+      [
+       14.088,
+       166.26
+      ],
+      [
+       12.606,
+       166.435
+      ],
+      [
+       11.123,
+       166.606
+      ],
+      [
+       9.641,
+       166.775
+      ],
+      [
+       8.158,
+       166.941
+      ],
+      [
+       6.675,
+       167.105
+      ],
+      [
+       5.192,
+       167.267
+      ],
+      [
+       3.708,
+       167.429
+      ],
+      [
+       2.225,
+       167.589
+      ],
+      [
+       0.742,
+       167.749
+      ],
+      [
+       -0.742,
+       167.909
+      ],
+      [
+       -2.225,
+       168.069
+      ],
+      [
+       -3.708,
+       168.229
+      ],
+      [
+       -5.192,
+       168.39
+      ],
+      [
+       -6.675,
+       168.553
+      ],
+      [
+       -8.158,
+       168.717
+      ],
+      [
+       -9.641,
+       168.883
+      ],
+      [
+       -11.123,
+       169.052
+      ],
+      [
+       -12.606,
+       169.223
+      ],
+      [
+       -14.088,
+       169.397
+      ],
+      [
+       -15.569,
+       169.576
+      ],
+      [
+       -17.051,
+       169.758
+      ],
+      [
+       -18.532,
+       169.944
+      ],
+      [
+       -20.012,
+       170.136
+      ],
+      [
+       -21.493,
+       170.333
+      ],
+      [
+       -22.972,
+       170.537
+      ],
+      [
+       -24.451,
+       170.747
+      ],
+      [
+       -25.929,
+       170.965
+      ],
+      [
+       -27.407,
+       171.19
+      ],
+      [
+       -28.884,
+       171.425
+      ],
+      [
+       -30.36,
+       171.669
+      ],
+      [
+       -31.835,
+       171.924
+      ],
+      [
+       -33.308,
+       172.191
+      ],
+      [
+       -34.781,
+       172.47
+      ],
+      [
+       -36.253,
+       172.763
+      ],
+      [
+       -37.723,
+       173.071
+      ],
+      [
+       -39.192,
+       173.396
+      ],
+      [
+       -40.659,
+       173.739
+      ],
+      [
+       -42.124,
+       174.102
+      ],
+      [
+       -43.588,
+       174.487
+      ],
+      [
+       -45.049,
+       174.896
+      ],
+      [
+       -46.508,
+       175.332
+      ],
+      [
+       -47.964,
+       175.798
+      ],
+      [
+       -49.417,
+       176.296
+      ],
+      [
+       -50.867,
+       176.831
+      ],
+      [
+       -52.313,
+       177.407
+      ],
+      [
+       -53.755,
+       178.029
+      ],
+      [
+       -55.193,
+       178.702
+      ],
+      [
+       -56.625,
+       179.433
+      ]
+     ],
+     [
+      [
+       -58.051,
+       -179.77
+      ],
+      [
+       -59.47,
+       -178.899
+      ],
+      [
+       -60.882,
+       -177.943
+      ],
+      [
+       -62.284,
+       -176.889
+      ],
+      [
+       -63.676,
+       -175.723
+      ],
+      [
+       -65.056,
+       -174.426
+      ],
+      [
+       -66.421,
+       -172.977
+      ],
+      [
+       -67.768,
+       -171.351
+      ],
+      [
+       -69.096,
+       -169.515
+      ],
+      [
+       -70.399,
+       -167.432
+      ],
+      [
+       -71.671,
+       -165.054
+      ],
+      [
+       -72.908,
+       -162.325
+      ],
+      [
+       -74.099,
+       -159.177
+      ],
+      [
+       -75.234,
+       -155.531
+      ],
+      [
+       -76.299,
+       -151.296
+      ],
+      [
+       -77.276,
+       -146.379
+      ],
+      [
+       -78.144,
+       -140.691
+      ],
+      [
+       -78.877,
+       -134.18
+      ],
+      [
+       -79.447,
+       -126.859
+      ],
+      [
+       -79.826,
+       -118.849
+      ],
+      [
+       -79.993,
+       -110.399
+      ],
+      [
+       -79.937,
+       -101.854
+      ],
+      [
+       -79.662,
+       -93.586
+      ],
+      [
+       -79.184,
+       -85.898
+      ],
+      [
+       -78.529,
+       -78.974
+      ],
+      [
+       -77.725,
+       -72.878
+      ],
+      [
+       -76.8,
+       -67.585
+      ],
+      [
+       -75.776,
+       -63.02
+      ],
+      [
+       -74.674,
+       -59.092
+      ],
+      [
+       -73.51,
+       -55.706
+      ],
+      [
+       -72.295,
+       -52.777
+      ],
+      [
+       -71.039,
+       -50.231
+      ],
+      [
+       -69.751,
+       -48.006
+      ],
+      [
+       -68.435,
+       -46.052
+      ],
+      [
+       -67.097,
+       -44.325
+      ],
+      [
+       -65.74,
+       -42.791
+      ],
+      [
+       -64.367,
+       -41.422
+      ],
+      [
+       -62.982,
+       -40.192
+      ],
+      [
+       -61.584,
+       -39.084
+      ],
+      [
+       -60.177,
+       -38.081
+      ],
+      [
+       -58.762,
+       -37.169
+      ],
+      [
+       -57.339,
+       -36.336
+      ],
+      [
+       -55.91,
+       -35.573
+      ],
+      [
+       -54.475,
+       -34.872
+      ],
+      [
+       -53.035,
+       -34.225
+      ],
+      [
+       -51.591,
+       -33.627
+      ],
+      [
+       -50.143,
+       -33.072
+      ],
+      [
+       -48.691,
+       -32.556
+      ],
+      [
+       -47.236,
+       -32.074
+      ],
+      [
+       -45.779,
+       -31.624
+      ],
+      [
+       -44.319,
+       -31.201
+      ],
+      [
+       -42.856,
+       -30.805
+      ],
+      [
+       -41.392,
+       -30.431
+      ],
+      [
+       -39.926,
+       -30.078
+      ],
+      [
+       -38.458,
+       -29.745
+      ],
+      [
+       -36.988,
+       -29.428
+      ],
+      [
+       -35.517,
+       -29.128
+      ],
+      [
+       -34.045,
+       -28.842
+      ],
+      [
+       -32.572,
+       -28.569
+      ],
+      [
+       -31.097,
+       -28.309
+      ],
+      [
+       -29.622,
+       -28.059
+      ],
+      [
+       -28.145,
+       -27.82
+      ],
+      [
+       -26.668,
+       -27.59
+      ],
+      [
+       -25.19,
+       -27.368
+      ],
+      [
+       -23.712,
+       -27.154
+      ],
+      [
+       -22.232,
+       -26.948
+      ],
+      [
+       -20.753,
+       -26.747
+      ],
+      [
+       -19.272,
+       -26.553
+      ],
+      [
+       -17.791,
+       -26.364
+      ],
+      [
+       -16.31,
+       -26.179
+      ],
+      [
+       -14.829,
+       -25.999
+      ],
+      [
+       -13.347,
+       -25.823
+      ],
+      [
+       -11.864,
+       -25.65
+      ],
+      [
+       -10.382,
+       -25.481
+      ],
+      [
+       -8.899,
+       -25.313
+      ],
+      [
+       -7.416,
+       -25.148
+      ],
+      [
+       -5.933,
+       -24.985
+      ],
+      [
+       -4.45,
+       -24.823
+      ],
+      [
+       -2.967,
+       -24.662
+      ],
+      [
+       -1.483,
+       -24.502
+      ],
+      [
+       -0.0,
+       -24.342
+      ]
+     ]
+    ],
+    "altitude_km": 620.0,
+    "period_minutes": 97.1,
+    "note": "Ground track is illustrative display geometry. Inclination and altitude are the spec's and the period is computed from them, but lat/lon modelling is outside the validated physics (PHYSICS.md \u00a71)."
+   },
+   "compliance": {
+    "verdict": "NOT_ASSESSABLE",
+    "renderable": false,
+    "mass": {
+     "mass_kg": null,
+     "interval_kg": [
+      83.2,
+      300.6060606060606
+     ],
+     "resolvable": false,
+     "summary": "83-301 kg (estimated range; method cannot resolve a single value)",
+     "tag": "estimated",
+     "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+     "provenance": "bounded by the kg/W spread around Dove-3 (Planet Flock) (5 kg at 20 W) and CryoSat-2 (684 kg at 850 W)",
+     "neighbours": [
+      {
+       "id": "dove_3",
+       "name": "Dove-3 (Planet Flock)",
+       "mass_kg": 5.2,
+       "power_w": 20.0,
+       "kg_per_w": 0.26,
+       "source": "Gunter's Space Page (space.skyrocket.de/doc_sdat/dove-3.htm); eoPortal Planet/Flock"
+      },
+      {
+       "id": "cryosat_2",
+       "name": "CryoSat-2",
+       "mass_kg": 684.0,
+       "power_w": 850.0,
+       "kg_per_w": 0.8047058823529412,
+       "source": "eoPortal, CryoSat-2 (Earth Explorer Opportunity Mission-2)"
+      }
+     ],
+     "power_w": 320.0,
+     "payload_class": "earth_observation",
+     "extrapolated": false,
+     "bracket_ratio": 42.5,
+     "scatter_ratio": 3.613053613053613,
+     "scatter_basis": "class",
+     "n_samples": 6,
+     "refusal_reasons": [
+      "the bracketing spacecraft are 42x apart in power (Dove-3 (Planet Flock) at 20 W, CryoSat-2 at 850 W), above the 4x limit. They are in different design regimes, so the power law between them is not a local one.",
+      "comparable spacecraft vary by 3.6x in kg/W (class basis, n=6), above the 2.0x limit. At this spread power does not determine mass, so no interpolation on power can resolve it."
+     ],
+     "warnings": [
+      "only 6 comparable spacecraft within 4x of 320 W, below the 4 needed to measure local scatter. The class-wide spread was used instead, which is wider and less specific but does not manufacture confidence the table cannot support."
+     ]
+    },
+    "mass_interval_kg": [
+     83.2,
+     300.6060606060606
+    ],
+    "ballistic_coefficient_kg_m2": [
+     71.35506003430531,
+     257.8096574666043
+    ],
+    "delta_v_interval_ms": null,
+    "propellant_interval_kg": null,
+    "optimistic": null,
+    "pessimistic": null,
+    "notes": [
+     "No compliance verdict: the dry mass could not be resolved to a single value, so any verdict would be an artefact of an arbitrary choice within [83.2, 300.6].",
+     "the bracketing spacecraft are 42x apart in power (Dove-3 (Planet Flock) at 20 W, CryoSat-2 at 850 W), above the 4x limit. They are in different design regimes, so the power law between them is not a local one.",
+     "comparable spacecraft vary by 3.6x in kg/W (class basis, n=6), above the 2.0x limit. At this spread power does not determine mass, so no interpolation on power can resolve it.",
+     "The mass is bounded to [83.2, 300.6] kg. That range is the honest output; narrowing it needs a better mass model (V2_BRIEF.md \u00a75 stage 2), not a better propagator."
+    ]
+   },
+   "solar_band": {
+    "caveat": "Bounds, not scenarios. Each level holds solar activity fixed at a percentile of the 1957-onward observed record for the whole run. No real 25-year period sits at one level -- the solar cycle is ~11 years, so a sustained solar maximum is physically impossible, not merely unlikely. Read low/high as bounds the true answer lies between, and never as best-case and worst-case futures.",
+    "percentiles": {
+     "low": 5.0,
+     "mean": 50.0,
+     "high": 95.0
+    },
+    "levels": {
+     "low": {
+      "natural_decay_years": null,
+      "compliance": {
+       "verdict": "NOT_ASSESSABLE",
+       "renderable": false,
+       "mass": {
+        "mass_kg": null,
+        "interval_kg": [
+         83.2,
+         300.6060606060606
+        ],
+        "resolvable": false,
+        "summary": "83-301 kg (estimated range; method cannot resolve a single value)",
+        "tag": "estimated",
+        "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+        "provenance": "bounded by the kg/W spread around Dove-3 (Planet Flock) (5 kg at 20 W) and CryoSat-2 (684 kg at 850 W)",
+        "neighbours": [
+         {
+          "id": "dove_3",
+          "name": "Dove-3 (Planet Flock)",
+          "mass_kg": 5.2,
+          "power_w": 20.0,
+          "kg_per_w": 0.26,
+          "source": "Gunter's Space Page (space.skyrocket.de/doc_sdat/dove-3.htm); eoPortal Planet/Flock"
+         },
+         {
+          "id": "cryosat_2",
+          "name": "CryoSat-2",
+          "mass_kg": 684.0,
+          "power_w": 850.0,
+          "kg_per_w": 0.8047058823529412,
+          "source": "eoPortal, CryoSat-2 (Earth Explorer Opportunity Mission-2)"
+         }
+        ],
+        "power_w": 320.0,
+        "payload_class": "earth_observation",
+        "extrapolated": false,
+        "bracket_ratio": 42.5,
+        "scatter_ratio": 3.613053613053613,
+        "scatter_basis": "class",
+        "n_samples": 6,
+        "refusal_reasons": [
+         "the bracketing spacecraft are 42x apart in power (Dove-3 (Planet Flock) at 20 W, CryoSat-2 at 850 W), above the 4x limit. They are in different design regimes, so the power law between them is not a local one.",
+         "comparable spacecraft vary by 3.6x in kg/W (class basis, n=6), above the 2.0x limit. At this spread power does not determine mass, so no interpolation on power can resolve it."
+        ],
+        "warnings": [
+         "only 6 comparable spacecraft within 4x of 320 W, below the 4 needed to measure local scatter. The class-wide spread was used instead, which is wider and less specific but does not manufacture confidence the table cannot support."
+        ]
+       },
+       "mass_interval_kg": [
+        83.2,
+        300.6060606060606
+       ],
+       "ballistic_coefficient_kg_m2": [
+        71.35506003430531,
+        257.8096574666043
+       ],
+       "delta_v_interval_ms": null,
+       "propellant_interval_kg": null,
+       "optimistic": null,
+       "pessimistic": null,
+       "notes": [
+        "No compliance verdict: the dry mass could not be resolved to a single value, so any verdict would be an artefact of an arbitrary choice within [83.2, 300.6].",
+        "the bracketing spacecraft are 42x apart in power (Dove-3 (Planet Flock) at 20 W, CryoSat-2 at 850 W), above the 4x limit. They are in different design regimes, so the power law between them is not a local one.",
+        "comparable spacecraft vary by 3.6x in kg/W (class basis, n=6), above the 2.0x limit. At this spread power does not determine mass, so no interpolation on power can resolve it.",
+        "The mass is bounded to [83.2, 300.6] kg. That range is the honest output; narrowing it needs a better mass model (V2_BRIEF.md \u00a75 stage 2), not a better propagator."
+       ]
+      }
+     },
+     "mean": {
+      "natural_decay_years": null,
+      "compliance": {
+       "verdict": "NOT_ASSESSABLE",
+       "renderable": false,
+       "mass": {
+        "mass_kg": null,
+        "interval_kg": [
+         83.2,
+         300.6060606060606
+        ],
+        "resolvable": false,
+        "summary": "83-301 kg (estimated range; method cannot resolve a single value)",
+        "tag": "estimated",
+        "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+        "provenance": "bounded by the kg/W spread around Dove-3 (Planet Flock) (5 kg at 20 W) and CryoSat-2 (684 kg at 850 W)",
+        "neighbours": [
+         {
+          "id": "dove_3",
+          "name": "Dove-3 (Planet Flock)",
+          "mass_kg": 5.2,
+          "power_w": 20.0,
+          "kg_per_w": 0.26,
+          "source": "Gunter's Space Page (space.skyrocket.de/doc_sdat/dove-3.htm); eoPortal Planet/Flock"
+         },
+         {
+          "id": "cryosat_2",
+          "name": "CryoSat-2",
+          "mass_kg": 684.0,
+          "power_w": 850.0,
+          "kg_per_w": 0.8047058823529412,
+          "source": "eoPortal, CryoSat-2 (Earth Explorer Opportunity Mission-2)"
+         }
+        ],
+        "power_w": 320.0,
+        "payload_class": "earth_observation",
+        "extrapolated": false,
+        "bracket_ratio": 42.5,
+        "scatter_ratio": 3.613053613053613,
+        "scatter_basis": "class",
+        "n_samples": 6,
+        "refusal_reasons": [
+         "the bracketing spacecraft are 42x apart in power (Dove-3 (Planet Flock) at 20 W, CryoSat-2 at 850 W), above the 4x limit. They are in different design regimes, so the power law between them is not a local one.",
+         "comparable spacecraft vary by 3.6x in kg/W (class basis, n=6), above the 2.0x limit. At this spread power does not determine mass, so no interpolation on power can resolve it."
+        ],
+        "warnings": [
+         "only 6 comparable spacecraft within 4x of 320 W, below the 4 needed to measure local scatter. The class-wide spread was used instead, which is wider and less specific but does not manufacture confidence the table cannot support."
+        ]
+       },
+       "mass_interval_kg": [
+        83.2,
+        300.6060606060606
+       ],
+       "ballistic_coefficient_kg_m2": [
+        71.35506003430531,
+        257.8096574666043
+       ],
+       "delta_v_interval_ms": null,
+       "propellant_interval_kg": null,
+       "optimistic": null,
+       "pessimistic": null,
+       "notes": [
+        "No compliance verdict: the dry mass could not be resolved to a single value, so any verdict would be an artefact of an arbitrary choice within [83.2, 300.6].",
+        "the bracketing spacecraft are 42x apart in power (Dove-3 (Planet Flock) at 20 W, CryoSat-2 at 850 W), above the 4x limit. They are in different design regimes, so the power law between them is not a local one.",
+        "comparable spacecraft vary by 3.6x in kg/W (class basis, n=6), above the 2.0x limit. At this spread power does not determine mass, so no interpolation on power can resolve it.",
+        "The mass is bounded to [83.2, 300.6] kg. That range is the honest output; narrowing it needs a better mass model (V2_BRIEF.md \u00a75 stage 2), not a better propagator."
+       ]
+      }
+     },
+     "high": {
+      "natural_decay_years": [
+       7.09,
+       25.62
+      ],
+      "compliance": {
+       "verdict": "NOT_ASSESSABLE",
+       "renderable": false,
+       "mass": {
+        "mass_kg": null,
+        "interval_kg": [
+         83.2,
+         300.6060606060606
+        ],
+        "resolvable": false,
+        "summary": "83-301 kg (estimated range; method cannot resolve a single value)",
+        "tag": "estimated",
+        "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+        "provenance": "bounded by the kg/W spread around Dove-3 (Planet Flock) (5 kg at 20 W) and CryoSat-2 (684 kg at 850 W)",
+        "neighbours": [
+         {
+          "id": "dove_3",
+          "name": "Dove-3 (Planet Flock)",
+          "mass_kg": 5.2,
+          "power_w": 20.0,
+          "kg_per_w": 0.26,
+          "source": "Gunter's Space Page (space.skyrocket.de/doc_sdat/dove-3.htm); eoPortal Planet/Flock"
+         },
+         {
+          "id": "cryosat_2",
+          "name": "CryoSat-2",
+          "mass_kg": 684.0,
+          "power_w": 850.0,
+          "kg_per_w": 0.8047058823529412,
+          "source": "eoPortal, CryoSat-2 (Earth Explorer Opportunity Mission-2)"
+         }
+        ],
+        "power_w": 320.0,
+        "payload_class": "earth_observation",
+        "extrapolated": false,
+        "bracket_ratio": 42.5,
+        "scatter_ratio": 3.613053613053613,
+        "scatter_basis": "class",
+        "n_samples": 6,
+        "refusal_reasons": [
+         "the bracketing spacecraft are 42x apart in power (Dove-3 (Planet Flock) at 20 W, CryoSat-2 at 850 W), above the 4x limit. They are in different design regimes, so the power law between them is not a local one.",
+         "comparable spacecraft vary by 3.6x in kg/W (class basis, n=6), above the 2.0x limit. At this spread power does not determine mass, so no interpolation on power can resolve it."
+        ],
+        "warnings": [
+         "only 6 comparable spacecraft within 4x of 320 W, below the 4 needed to measure local scatter. The class-wide spread was used instead, which is wider and less specific but does not manufacture confidence the table cannot support."
+        ]
+       },
+       "mass_interval_kg": [
+        83.2,
+        300.6060606060606
+       ],
+       "ballistic_coefficient_kg_m2": [
+        71.35506003430531,
+        257.8096574666043
+       ],
+       "delta_v_interval_ms": null,
+       "propellant_interval_kg": null,
+       "optimistic": null,
+       "pessimistic": null,
+       "notes": [
+        "No compliance verdict: the dry mass could not be resolved to a single value, so any verdict would be an artefact of an arbitrary choice within [83.2, 300.6].",
+        "the bracketing spacecraft are 42x apart in power (Dove-3 (Planet Flock) at 20 W, CryoSat-2 at 850 W), above the 4x limit. They are in different design regimes, so the power law between them is not a local one.",
+        "comparable spacecraft vary by 3.6x in kg/W (class basis, n=6), above the 2.0x limit. At this spread power does not determine mass, so no interpolation on power can resolve it.",
+        "The mass is bounded to [83.2, 300.6] kg. That range is the honest output; narrowing it needs a better mass model (V2_BRIEF.md \u00a75 stage 2), not a better propagator."
+       ]
+      }
+     }
+    }
+   },
+   "blocked": null
+  },
+  {
+   "label": "knife-edge-ambiguous",
+   "prose": "An earth observation platform at 390 km, 45 degrees, 1700 W, 5 year mission.",
+   "extraction": {
+    "complete": true,
+    "spec": {
+     "altitude_km": 390.0,
+     "inclination_deg": 45.0,
+     "payload_class": "earth_observation",
+     "power_w": 1700.0,
+     "mission_duration_years": 5.0,
+     "label": "knife-edge-ambiguous",
+     "provenance": {
+      "altitude_km": "stated",
+      "inclination_deg": "stated",
+      "payload_class": "stated",
+      "power_w": "stated",
+      "mission_duration_years": "stated"
+     }
+    },
+    "questions": [],
+    "discarded": []
+   },
+   "spec": {
+    "altitude_km": 390.0,
+    "inclination_deg": 45.0,
+    "payload_class": "earth_observation",
+    "power_w": 1700.0,
+    "mission_duration_years": 5.0,
+    "label": "knife-edge-ambiguous",
+    "propellant_available_kg": 40.0,
+    "isp_s": 1666.0,
+    "bus_length_m": 3.4,
+    "bus_width_m": 2.0,
+    "bus_thickness_m": 0.6,
+    "solar_array_span_m": 9.0,
+    "solar_array_chord_m": 2.0,
+    "provenance": {}
+   },
+   "fields": {
+    "altitude_km": {
+     "value": 390.0,
+     "unit": "km",
+     "kind": "stated",
+     "detail": "from the description"
+    },
+    "inclination_deg": {
+     "value": 45.0,
+     "unit": "deg",
+     "kind": "stated",
+     "detail": "sampled latitude for density (PHYSICS.md \u00a710.2)"
+    },
+    "power_w": {
+     "value": 1700.0,
+     "unit": "W",
+     "kind": "stated",
+     "detail": "from the description"
+    },
+    "mission_duration_years": {
+     "value": 5.0,
+     "unit": "yr",
+     "kind": "stated",
+     "detail": "disposal clock starts at end of mission (47 CFR 25.283(e))"
+    },
+    "payload_class": {
+     "value": "earth_observation",
+     "kind": "stated",
+     "detail": "selects the mass-model reference class"
+    },
+    "cd": {
+     "value": 2.2,
+     "kind": "stated",
+     "detail": "Free-molecular convention from data/satellite_specs.json (swept 2.0-2.4 elsewhere). Not a spec input."
+    },
+    "dry_mass_kg": {
+     "value": 1018.5,
+     "unit": "kg",
+     "kind": "estimated",
+     "detail": "interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)",
+     "interval": [
+      768.5,
+      1424.1
+     ],
+     "sources": [
+      {
+       "name": "CryoSat-2",
+       "mass_kg": 684.0,
+       "power_w": 850.0,
+       "kg_per_w": 0.8047,
+       "source": "eoPortal, CryoSat-2 (Earth Explorer Opportunity Mission-2)"
+      },
+      {
+       "name": "Himawari-8",
+       "mass_kg": 1300.0,
+       "power_w": 2600.0,
+       "kg_per_w": 0.5,
+       "source": "eoPortal, Himawari-8 and 9; Gunter's Space Page"
+      }
+     ]
+    },
+    "ram_area_knife_edge_m2": {
+     "value": 1.29,
+     "unit": "m^2",
+     "kind": "computed",
+     "detail": "sim/geometry.py projected-area solver over the stated 3.4 x 2 x 0.6 m bus plus a 9 x 2 m array (minimum-area attitude)"
+    },
+    "ram_area_broadside_m2": {
+     "value": 24.9188,
+     "unit": "m^2",
+     "kind": "computed",
+     "detail": "sim/geometry.py projected-area solver over the stated 3.4 x 2 x 0.6 m bus plus a 9 x 2 m array (maximum-area attitude)"
+    },
+    "ballistic_coefficient_kg_m2": {
+     "value": 358.9,
+     "unit": "kg/m^2",
+     "kind": "estimated",
+     "detail": "m/(Cd*A); inherits the mass interval (sim/bounded.py)",
+     "interval": [
+      270.8,
+      501.8
+     ]
+    },
+    "cd_times_area_m2": {
+     "value": 2.838,
+     "unit": "m^2",
+     "kind": "computed",
+     "detail": "the only separately observable combination (README central finding)"
+    }
+   },
+   "orbit": {
+    "segments": [
+     [
+      [
+       0.0,
+       0.0
+      ],
+      [
+       1.065,
+       0.968
+      ],
+      [
+       2.13,
+       1.937
+      ],
+      [
+       3.194,
+       2.908
+      ],
+      [
+       4.256,
+       3.881
+      ],
+      [
+       5.318,
+       4.856
+      ],
+      [
+       6.377,
+       5.836
+      ],
+      [
+       7.435,
+       6.82
+      ],
+      [
+       8.489,
+       7.809
+      ],
+      [
+       9.541,
+       8.804
+      ],
+      [
+       10.589,
+       9.806
+      ],
+      [
+       11.633,
+       10.815
+      ],
+      [
+       12.673,
+       11.833
+      ],
+      [
+       13.709,
+       12.86
+      ],
+      [
+       14.739,
+       13.896
+      ],
+      [
+       15.764,
+       14.944
+      ],
+      [
+       16.782,
+       16.003
+      ],
+      [
+       17.795,
+       17.074
+      ],
+      [
+       18.8,
+       18.159
+      ],
+      [
+       19.797,
+       19.258
+      ],
+      [
+       20.787,
+       20.372
+      ],
+      [
+       21.768,
+       21.502
+      ],
+      [
+       22.74,
+       22.648
+      ],
+      [
+       23.702,
+       23.813
+      ],
+      [
+       24.653,
+       24.995
+      ],
+      [
+       25.594,
+       26.198
+      ],
+      [
+       26.523,
+       27.421
+      ],
+      [
+       27.44,
+       28.665
+      ],
+      [
+       28.343,
+       29.932
+      ],
+      [
+       29.233,
+       31.222
+      ],
+      [
+       30.109,
+       32.536
+      ],
+      [
+       30.969,
+       33.875
+      ],
+      [
+       31.812,
+       35.24
+      ],
+      [
+       32.639,
+       36.631
+      ],
+      [
+       33.448,
+       38.05
+      ],
+      [
+       34.238,
+       39.498
+      ],
+      [
+       35.008,
+       40.974
+      ],
+      [
+       35.758,
+       42.479
+      ],
+      [
+       36.486,
+       44.015
+      ],
+      [
+       37.191,
+       45.581
+      ],
+      [
+       37.873,
+       47.178
+      ],
+      [
+       38.53,
+       48.806
+      ],
+      [
+       39.161,
+       50.465
+      ],
+      [
+       39.766,
+       52.156
+      ],
+      [
+       40.342,
+       53.877
+      ],
+      [
+       40.89,
+       55.629
+      ],
+      [
+       41.407,
+       57.41
+      ],
+      [
+       41.894,
+       59.221
+      ],
+      [
+       42.348,
+       61.061
+      ],
+      [
+       42.77,
+       62.927
+      ],
+      [
+       43.157,
+       64.819
+      ],
+      [
+       43.51,
+       66.736
+      ],
+      [
+       43.827,
+       68.675
+      ],
+      [
+       44.107,
+       70.634
+      ],
+      [
+       44.35,
+       72.612
+      ],
+      [
+       44.556,
+       74.606
+      ],
+      [
+       44.722,
+       76.613
+      ],
+      [
+       44.851,
+       78.63
+      ],
+      [
+       44.939,
+       80.656
+      ],
+      [
+       44.989,
+       82.687
+      ],
+      [
+       44.999,
+       84.72
+      ],
+      [
+       44.969,
+       86.753
+      ],
+      [
+       44.9,
+       88.781
+      ],
+      [
+       44.791,
+       90.804
+      ],
+      [
+       44.644,
+       92.816
+      ],
+      [
+       44.458,
+       94.817
+      ],
+      [
+       44.233,
+       96.803
+      ],
+      [
+       43.972,
+       98.772
+      ],
+      [
+       43.673,
+       100.721
+      ],
+      [
+       43.338,
+       102.649
+      ],
+      [
+       42.968,
+       104.554
+      ],
+      [
+       42.563,
+       106.433
+      ],
+      [
+       42.125,
+       108.286
+      ],
+      [
+       41.655,
+       110.112
+      ],
+      [
+       41.152,
+       111.908
+      ],
+      [
+       40.62,
+       113.675
+      ],
+      [
+       40.058,
+       115.412
+      ],
+      [
+       39.467,
+       117.117
+      ],
+      [
+       38.849,
+       118.792
+      ],
+      [
+       38.205,
+       120.436
+      ],
+      [
+       37.535,
+       122.048
+      ],
+      [
+       36.842,
+       123.63
+      ],
+      [
+       36.125,
+       125.181
+      ],
+      [
+       35.386,
+       126.701
+      ],
+      [
+       34.626,
+       128.192
+      ],
+      [
+       33.845,
+       129.653
+      ],
+      [
+       33.046,
+       131.086
+      ],
+      [
+       32.228,
+       132.492
+      ],
+      [
+       31.392,
+       133.87
+      ],
+      [
+       30.541,
+       135.222
+      ],
+      [
+       29.673,
+       136.548
+      ],
+      [
+       28.79,
+       137.85
+      ],
+      [
+       27.893,
+       139.128
+      ],
+      [
+       26.983,
+       140.384
+      ],
+      [
+       26.06,
+       141.617
+      ],
+      [
+       25.125,
+       142.83
+      ],
+      [
+       24.179,
+       144.022
+      ],
+      [
+       23.222,
+       145.196
+      ],
+      [
+       22.255,
+       146.351
+      ],
+      [
+       21.279,
+       147.489
+      ],
+      [
+       20.293,
+       148.611
+      ],
+      [
+       19.3,
+       149.717
+      ],
+      [
+       18.298,
+       150.809
+      ],
+      [
+       17.289,
+       151.887
+      ],
+      [
+       16.274,
+       152.952
+      ],
+      [
+       15.252,
+       154.005
+      ],
+      [
+       14.225,
+       155.047
+      ],
+      [
+       13.192,
+       156.079
+      ],
+      [
+       12.154,
+       157.101
+      ],
+      [
+       11.112,
+       158.114
+      ],
+      [
+       10.065,
+       159.12
+      ],
+      [
+       9.015,
+       160.118
+      ],
+      [
+       7.962,
+       161.11
+      ],
+      [
+       6.906,
+       162.097
+      ],
+      [
+       5.848,
+       163.078
+      ],
+      [
+       4.787,
+       164.056
+      ],
+      [
+       3.725,
+       165.03
+      ],
+      [
+       2.662,
+       166.001
+      ],
+      [
+       1.597,
+       166.971
+      ],
+      [
+       0.533,
+       167.94
+      ],
+      [
+       -0.533,
+       168.908
+      ],
+      [
+       -1.597,
+       169.877
+      ],
+      [
+       -2.662,
+       170.846
+      ],
+      [
+       -3.725,
+       171.818
+      ],
+      [
+       -4.787,
+       172.792
+      ],
+      [
+       -5.848,
+       173.77
+      ],
+      [
+       -6.906,
+       174.751
+      ],
+      [
+       -7.962,
+       175.738
+      ],
+      [
+       -9.015,
+       176.73
+      ],
+      [
+       -10.065,
+       177.728
+      ],
+      [
+       -11.112,
+       178.733
+      ],
+      [
+       -12.154,
+       179.747
+      ]
+     ],
+     [
+      [
+       -13.192,
+       -179.231
+      ],
+      [
+       -14.225,
+       -178.199
+      ],
+      [
+       -15.252,
+       -177.157
+      ],
+      [
+       -16.274,
+       -176.104
+      ],
+      [
+       -17.289,
+       -175.039
+      ],
+      [
+       -18.298,
+       -173.961
+      ],
+      [
+       -19.3,
+       -172.869
+      ],
+      [
+       -20.293,
+       -171.763
+      ],
+      [
+       -21.279,
+       -170.641
+      ],
+      [
+       -22.255,
+       -169.503
+      ],
+      [
+       -23.222,
+       -168.348
+      ],
+      [
+       -24.179,
+       -167.174
+      ],
+      [
+       -25.125,
+       -165.982
+      ],
+      [
+       -26.06,
+       -164.769
+      ],
+      [
+       -26.983,
+       -163.536
+      ],
+      [
+       -27.893,
+       -162.28
+      ],
+      [
+       -28.79,
+       -161.002
+      ],
+      [
+       -29.673,
+       -159.7
+      ],
+      [
+       -30.541,
+       -158.374
+      ],
+      [
+       -31.392,
+       -157.022
+      ],
+      [
+       -32.228,
+       -155.644
+      ],
+      [
+       -33.046,
+       -154.239
+      ],
+      [
+       -33.845,
+       -152.806
+      ],
+      [
+       -34.626,
+       -151.344
+      ],
+      [
+       -35.386,
+       -149.853
+      ],
+      [
+       -36.125,
+       -148.333
+      ],
+      [
+       -36.842,
+       -146.782
+      ],
+      [
+       -37.535,
+       -145.2
+      ],
+      [
+       -38.205,
+       -143.588
+      ],
+      [
+       -38.849,
+       -141.944
+      ],
+      [
+       -39.467,
+       -140.269
+      ],
+      [
+       -40.058,
+       -138.564
+      ],
+      [
+       -40.62,
+       -136.827
+      ],
+      [
+       -41.152,
+       -135.06
+      ],
+      [
+       -41.655,
+       -133.264
+      ],
+      [
+       -42.125,
+       -131.439
+      ],
+      [
+       -42.563,
+       -129.586
+      ],
+      [
+       -42.968,
+       -127.706
+      ],
+      [
+       -43.338,
+       -125.801
+      ],
+      [
+       -43.673,
+       -123.873
+      ],
+      [
+       -43.972,
+       -121.924
+      ],
+      [
+       -44.233,
+       -119.955
+      ],
+      [
+       -44.458,
+       -117.969
+      ],
+      [
+       -44.644,
+       -115.968
+      ],
+      [
+       -44.791,
+       -113.956
+      ],
+      [
+       -44.9,
+       -111.934
+      ],
+      [
+       -44.969,
+       -109.905
+      ],
+      [
+       -44.999,
+       -107.872
+      ],
+      [
+       -44.989,
+       -105.839
+      ],
+      [
+       -44.939,
+       -103.808
+      ],
+      [
+       -44.851,
+       -101.783
+      ],
+      [
+       -44.722,
+       -99.765
+      ],
+      [
+       -44.556,
+       -97.758
+      ],
+      [
+       -44.35,
+       -95.764
+      ],
+      [
+       -44.107,
+       -93.786
+      ],
+      [
+       -43.827,
+       -91.827
+      ],
+      [
+       -43.51,
+       -89.888
+      ],
+      [
+       -43.157,
+       -87.971
+      ],
+      [
+       -42.77,
+       -86.079
+      ],
+      [
+       -42.348,
+       -84.213
+      ],
+      [
+       -41.894,
+       -82.373
+      ],
+      [
+       -41.407,
+       -80.562
+      ],
+      [
+       -40.89,
+       -78.781
+      ],
+      [
+       -40.342,
+       -77.029
+      ],
+      [
+       -39.766,
+       -75.308
+      ],
+      [
+       -39.161,
+       -73.617
+      ],
+      [
+       -38.53,
+       -71.958
+      ],
+      [
+       -37.873,
+       -70.33
+      ],
+      [
+       -37.191,
+       -68.733
+      ],
+      [
+       -36.486,
+       -67.167
+      ],
+      [
+       -35.758,
+       -65.631
+      ],
+      [
+       -35.008,
+       -64.126
+      ],
+      [
+       -34.238,
+       -62.65
+      ],
+      [
+       -33.448,
+       -61.203
+      ],
+      [
+       -32.639,
+       -59.784
+      ],
+      [
+       -31.812,
+       -58.392
+      ],
+      [
+       -30.969,
+       -57.027
+      ],
+      [
+       -30.109,
+       -55.688
+      ],
+      [
+       -29.233,
+       -54.374
+      ],
+      [
+       -28.343,
+       -53.084
+      ],
+      [
+       -27.44,
+       -51.817
+      ],
+      [
+       -26.523,
+       -50.573
+      ],
+      [
+       -25.594,
+       -49.35
+      ],
+      [
+       -24.653,
+       -48.148
+      ],
+      [
+       -23.702,
+       -46.965
+      ],
+      [
+       -22.74,
+       -45.8
+      ],
+      [
+       -21.768,
+       -44.654
+      ],
+      [
+       -20.787,
+       -43.524
+      ],
+      [
+       -19.797,
+       -42.41
+      ],
+      [
+       -18.8,
+       -41.311
+      ],
+      [
+       -17.795,
+       -40.226
+      ],
+      [
+       -16.782,
+       -39.155
+      ],
+      [
+       -15.764,
+       -38.096
+      ],
+      [
+       -14.739,
+       -37.048
+      ],
+      [
+       -13.709,
+       -36.012
+      ],
+      [
+       -12.673,
+       -34.985
+      ],
+      [
+       -11.633,
+       -33.967
+      ],
+      [
+       -10.589,
+       -32.958
+      ],
+      [
+       -9.541,
+       -31.956
+      ],
+      [
+       -8.489,
+       -30.961
+      ],
+      [
+       -7.435,
+       -29.972
+      ],
+      [
+       -6.377,
+       -28.988
+      ],
+      [
+       -5.318,
+       -28.009
+      ],
+      [
+       -4.256,
+       -27.033
+      ],
+      [
+       -3.194,
+       -26.06
+      ],
+      [
+       -2.13,
+       -25.09
+      ],
+      [
+       -1.065,
+       -24.12
+      ],
+      [
+       -0.0,
+       -23.152
+      ]
+     ]
+    ],
+    "altitude_km": 390.0,
+    "period_minutes": 92.36,
+    "note": "Ground track is illustrative display geometry. Inclination and altitude are the spec's and the period is computed from them, but lat/lon modelling is outside the validated physics (PHYSICS.md \u00a71)."
+   },
+   "compliance": {
+    "verdict": "AMBIGUOUS",
+    "renderable": false,
+    "mass": {
+     "mass_kg": 1018.4935939145129,
+     "interval_kg": [
+      768.5416666666666,
+      1424.083769633508
+     ],
+     "resolvable": true,
+     "summary": "1018 kg (estimated, 769-1424 kg)",
+     "tag": "estimated",
+     "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+     "provenance": "interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)",
+     "neighbours": [
+      {
+       "id": "cryosat_2",
+       "name": "CryoSat-2",
+       "mass_kg": 684.0,
+       "power_w": 850.0,
+       "kg_per_w": 0.8047058823529412,
+       "source": "eoPortal, CryoSat-2 (Earth Explorer Opportunity Mission-2)"
+      },
+      {
+       "id": "himawari_8",
+       "name": "Himawari-8",
+       "mass_kg": 1300.0,
+       "power_w": 2600.0,
+       "kg_per_w": 0.5,
+       "source": "eoPortal, Himawari-8 and 9; Gunter's Space Page"
+      }
+     ],
+     "power_w": 1700.0,
+     "payload_class": "earth_observation",
+     "extrapolated": false,
+     "bracket_ratio": 3.0588235294117645,
+     "scatter_ratio": 1.852968851786619,
+     "scatter_basis": "local",
+     "n_samples": 4,
+     "refusal_reasons": [],
+     "warnings": []
+    },
+    "mass_interval_kg": [
+     768.5416666666666,
+     1424.083769633508
+    ],
+    "ballistic_coefficient_kg_m2": [
+     270.80396993187685,
+     501.791321223928
+    ],
+    "delta_v_interval_ms": [
+     0.0,
+     8.36268752641081
+    ],
+    "propellant_interval_kg": [
+     0.0,
+     0.7287433248493461
+    ],
+    "optimistic": {
+     "verdict": "COMPLIANT_NATURAL",
+     "renderable": true,
+     "rule": {
+      "id": "fcc_5yr",
+      "label": "FCC 5-year rule",
+      "citation": "47 CFR \u00a7 25.283(e)",
+      "window_years": 5.0
+     },
+     "solar_activity": "mean",
+     "operational_altitude_km": 390.0,
+     "natural_decay_years": 3.6679124718973566,
+     "disposal_altitude_km": null,
+     "delta_v_ms": 0.0,
+     "propellant_required_kg": 0.0,
+     "propellant_available_kg": 40.0,
+     "perigee_lowering_delta_v_ms": null,
+     "margin_note": "",
+     "notes": [
+      "Natural decay reenters in 3.67 years, inside the 5-year window. No disposal burn needed."
+     ]
+    },
+    "pessimistic": {
+     "verdict": "COMPLIANT_WITH_DISPOSAL",
+     "renderable": true,
+     "rule": {
+      "id": "fcc_5yr",
+      "label": "FCC 5-year rule",
+      "citation": "47 CFR \u00a7 25.283(e)",
+      "window_years": 5.0
+     },
+     "solar_activity": "mean",
+     "operational_altitude_km": 390.0,
+     "natural_decay_years": null,
+     "disposal_altitude_km": 375.2734375,
+     "delta_v_ms": 8.36268752641081,
+     "propellant_required_kg": 0.7287433248493461,
+     "propellant_available_kg": 40.0,
+     "perigee_lowering_delta_v_ms": 54.821621572131335,
+     "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+     "notes": [
+      "Natural decay does not reenter within 5 years at 390.0 km.",
+      "Highest complying circular altitude is 375.3 km; transfer costs 4.2 + 4.2 = 8.4 m/s.",
+      "For reference, a single-burn drop to a 200 km perigee costs 54.8 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+     ]
+    },
+    "notes": [
+     "No verdict: compliance flips across the mass range. At 769 kg the design is COMPLIANT_NATURAL; at 1424 kg it is COMPLIANT_WITH_DISPOSAL. The answer is determined by mass uncertainty, not by the design.",
+     "Mass bounded to [768.5, 1424] kg (interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)); ballistic coefficient [270.8, 501.8] kg/m2."
+    ]
+   },
+   "solar_band": {
+    "caveat": "Bounds, not scenarios. Each level holds solar activity fixed at a percentile of the 1957-onward observed record for the whole run. No real 25-year period sits at one level -- the solar cycle is ~11 years, so a sustained solar maximum is physically impossible, not merely unlikely. Read low/high as bounds the true answer lies between, and never as best-case and worst-case futures.",
+    "percentiles": {
+     "low": 5.0,
+     "mean": 50.0,
+     "high": 95.0
+    },
+    "levels": {
+     "low": {
+      "natural_decay_years": [
+       9.48,
+       17.57
+      ],
+      "compliance": {
+       "verdict": "COMPLIANT_WITH_DISPOSAL",
+       "renderable": true,
+       "mass": {
+        "mass_kg": 1018.4935939145129,
+        "interval_kg": [
+         768.5416666666666,
+         1424.083769633508
+        ],
+        "resolvable": true,
+        "summary": "1018 kg (estimated, 769-1424 kg)",
+        "tag": "estimated",
+        "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+        "provenance": "interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)",
+        "neighbours": [
+         {
+          "id": "cryosat_2",
+          "name": "CryoSat-2",
+          "mass_kg": 684.0,
+          "power_w": 850.0,
+          "kg_per_w": 0.8047058823529412,
+          "source": "eoPortal, CryoSat-2 (Earth Explorer Opportunity Mission-2)"
+         },
+         {
+          "id": "himawari_8",
+          "name": "Himawari-8",
+          "mass_kg": 1300.0,
+          "power_w": 2600.0,
+          "kg_per_w": 0.5,
+          "source": "eoPortal, Himawari-8 and 9; Gunter's Space Page"
+         }
+        ],
+        "power_w": 1700.0,
+        "payload_class": "earth_observation",
+        "extrapolated": false,
+        "bracket_ratio": 3.0588235294117645,
+        "scatter_ratio": 1.852968851786619,
+        "scatter_basis": "local",
+        "n_samples": 4,
+        "refusal_reasons": [],
+        "warnings": []
+       },
+       "mass_interval_kg": [
+        768.5416666666666,
+        1424.083769633508
+       ],
+       "ballistic_coefficient_kg_m2": [
+        270.80396993187685,
+        501.791321223928
+       ],
+       "delta_v_interval_ms": [
+        14.81415080896113,
+        28.415238357401904
+       ],
+       "propellant_interval_kg": [
+        0.6965489248949499,
+        2.474648694896303
+       ],
+       "optimistic": {
+        "verdict": "COMPLIANT_WITH_DISPOSAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "low",
+        "operational_altitude_km": 390.0,
+        "natural_decay_years": null,
+        "disposal_altitude_km": 363.9453125,
+        "delta_v_ms": 14.81415080896113,
+        "propellant_required_kg": 0.6965489248949499,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": 54.821621572131335,
+        "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+        "notes": [
+         "Natural decay does not reenter within 5 years at 390.0 km.",
+         "Highest complying circular altitude is 363.9 km; transfer costs 7.4 + 7.4 = 14.8 m/s.",
+         "For reference, a single-burn drop to a 200 km perigee costs 54.8 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+        ]
+       },
+       "pessimistic": {
+        "verdict": "COMPLIANT_WITH_DISPOSAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "low",
+        "operational_altitude_km": 390.0,
+        "natural_decay_years": null,
+        "disposal_altitude_km": 340.15625,
+        "delta_v_ms": 28.415238357401904,
+        "propellant_required_kg": 2.474648694896303,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": 54.821621572131335,
+        "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+        "notes": [
+         "Natural decay does not reenter within 5 years at 390.0 km.",
+         "Highest complying circular altitude is 340.2 km; transfer costs 14.2 + 14.2 = 28.4 m/s.",
+         "For reference, a single-burn drop to a 200 km perigee costs 54.8 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+        ]
+       },
+       "notes": [
+        "Mass bounded to [768.5, 1424] kg (interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)); ballistic coefficient [270.8, 501.8] kg/m2."
+       ]
+      }
+     },
+     "mean": {
+      "natural_decay_years": [
+       3.67,
+       6.8
+      ],
+      "compliance": {
+       "verdict": "AMBIGUOUS",
+       "renderable": false,
+       "mass": {
+        "mass_kg": 1018.4935939145129,
+        "interval_kg": [
+         768.5416666666666,
+         1424.083769633508
+        ],
+        "resolvable": true,
+        "summary": "1018 kg (estimated, 769-1424 kg)",
+        "tag": "estimated",
+        "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+        "provenance": "interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)",
+        "neighbours": [
+         {
+          "id": "cryosat_2",
+          "name": "CryoSat-2",
+          "mass_kg": 684.0,
+          "power_w": 850.0,
+          "kg_per_w": 0.8047058823529412,
+          "source": "eoPortal, CryoSat-2 (Earth Explorer Opportunity Mission-2)"
+         },
+         {
+          "id": "himawari_8",
+          "name": "Himawari-8",
+          "mass_kg": 1300.0,
+          "power_w": 2600.0,
+          "kg_per_w": 0.5,
+          "source": "eoPortal, Himawari-8 and 9; Gunter's Space Page"
+         }
+        ],
+        "power_w": 1700.0,
+        "payload_class": "earth_observation",
+        "extrapolated": false,
+        "bracket_ratio": 3.0588235294117645,
+        "scatter_ratio": 1.852968851786619,
+        "scatter_basis": "local",
+        "n_samples": 4,
+        "refusal_reasons": [],
+        "warnings": []
+       },
+       "mass_interval_kg": [
+        768.5416666666666,
+        1424.083769633508
+       ],
+       "ballistic_coefficient_kg_m2": [
+        270.80396993187685,
+        501.791321223928
+       ],
+       "delta_v_interval_ms": [
+        0.0,
+        8.36268752641081
+       ],
+       "propellant_interval_kg": [
+        0.0,
+        0.7287433248493461
+       ],
+       "optimistic": {
+        "verdict": "COMPLIANT_NATURAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "mean",
+        "operational_altitude_km": 390.0,
+        "natural_decay_years": 3.6679124718973566,
+        "disposal_altitude_km": null,
+        "delta_v_ms": 0.0,
+        "propellant_required_kg": 0.0,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": null,
+        "margin_note": "",
+        "notes": [
+         "Natural decay reenters in 3.67 years, inside the 5-year window. No disposal burn needed."
+        ]
+       },
+       "pessimistic": {
+        "verdict": "COMPLIANT_WITH_DISPOSAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "mean",
+        "operational_altitude_km": 390.0,
+        "natural_decay_years": null,
+        "disposal_altitude_km": 375.2734375,
+        "delta_v_ms": 8.36268752641081,
+        "propellant_required_kg": 0.7287433248493461,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": 54.821621572131335,
+        "margin_note": "Delta-v is for a two-burn transfer to a lower circular orbit, because that is the orbit this engine can propagate (PHYSICS.md \u00a71 excludes eccentricity). Real disposal lowers perigee with a single burn and costs less, so this is a conservative bound, not an estimate.",
+        "notes": [
+         "Natural decay does not reenter within 5 years at 390.0 km.",
+         "Highest complying circular altitude is 375.3 km; transfer costs 4.2 + 4.2 = 8.4 m/s.",
+         "For reference, a single-burn drop to a 200 km perigee costs 54.8 m/s, but the resulting ellipse is outside this engine's circular state and carries no computed decay time."
+        ]
+       },
+       "notes": [
+        "No verdict: compliance flips across the mass range. At 769 kg the design is COMPLIANT_NATURAL; at 1424 kg it is COMPLIANT_WITH_DISPOSAL. The answer is determined by mass uncertainty, not by the design.",
+        "Mass bounded to [768.5, 1424] kg (interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)); ballistic coefficient [270.8, 501.8] kg/m2."
+       ]
+      }
+     },
+     "high": {
+      "natural_decay_years": [
+       0.95,
+       1.76
+      ],
+      "compliance": {
+       "verdict": "COMPLIANT_NATURAL",
+       "renderable": true,
+       "mass": {
+        "mass_kg": 1018.4935939145129,
+        "interval_kg": [
+         768.5416666666666,
+         1424.083769633508
+        ],
+        "resolvable": true,
+        "summary": "1018 kg (estimated, 769-1424 kg)",
+        "tag": "estimated",
+        "method": "log-log interpolation on power between two reference spacecraft, bounded by the observed kg/W spread",
+        "provenance": "interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)",
+        "neighbours": [
+         {
+          "id": "cryosat_2",
+          "name": "CryoSat-2",
+          "mass_kg": 684.0,
+          "power_w": 850.0,
+          "kg_per_w": 0.8047058823529412,
+          "source": "eoPortal, CryoSat-2 (Earth Explorer Opportunity Mission-2)"
+         },
+         {
+          "id": "himawari_8",
+          "name": "Himawari-8",
+          "mass_kg": 1300.0,
+          "power_w": 2600.0,
+          "kg_per_w": 0.5,
+          "source": "eoPortal, Himawari-8 and 9; Gunter's Space Page"
+         }
+        ],
+        "power_w": 1700.0,
+        "payload_class": "earth_observation",
+        "extrapolated": false,
+        "bracket_ratio": 3.0588235294117645,
+        "scatter_ratio": 1.852968851786619,
+        "scatter_basis": "local",
+        "n_samples": 4,
+        "refusal_reasons": [],
+        "warnings": []
+       },
+       "mass_interval_kg": [
+        768.5416666666666,
+        1424.083769633508
+       ],
+       "ballistic_coefficient_kg_m2": [
+        270.80396993187685,
+        501.791321223928
+       ],
+       "delta_v_interval_ms": [
+        0.0,
+        0.0
+       ],
+       "propellant_interval_kg": [
+        0.0,
+        0.0
+       ],
+       "optimistic": {
+        "verdict": "COMPLIANT_NATURAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "high",
+        "operational_altitude_km": 390.0,
+        "natural_decay_years": 0.9471596477027575,
+        "disposal_altitude_km": null,
+        "delta_v_ms": 0.0,
+        "propellant_required_kg": 0.0,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": null,
+        "margin_note": "",
+        "notes": [
+         "Natural decay reenters in 0.95 years, inside the 5-year window. No disposal burn needed."
+        ]
+       },
+       "pessimistic": {
+        "verdict": "COMPLIANT_NATURAL",
+        "renderable": true,
+        "rule": {
+         "id": "fcc_5yr",
+         "label": "FCC 5-year rule",
+         "citation": "47 CFR \u00a7 25.283(e)",
+         "window_years": 5.0
+        },
+        "solar_activity": "high",
+        "operational_altitude_km": 390.0,
+        "natural_decay_years": 1.755057324862397,
+        "disposal_altitude_km": null,
+        "delta_v_ms": 0.0,
+        "propellant_required_kg": 0.0,
+        "propellant_available_kg": 40.0,
+        "perigee_lowering_delta_v_ms": null,
+        "margin_note": "",
+        "notes": [
+         "Natural decay reenters in 1.76 years, inside the 5-year window. No disposal burn needed."
+        ]
+       },
+       "notes": [
+        "Mass bounded to [768.5, 1424] kg (interpolated between CryoSat-2 (684 kg at 850 W) and Himawari-8 (1300 kg at 2600 W)); ballistic coefficient [270.8, 501.8] kg/m2."
+       ]
+      }
+     }
+    }
+   },
+   "blocked": null
+  },
+  {
+   "label": "no-chassis-stated",
+   "prose": "A radar earth observation platform at 693 km, 65 degrees, 4.8 kW, seven year mission.",
+   "extraction": {
+    "complete": true,
+    "spec": {
+     "altitude_km": 693.0,
+     "inclination_deg": 65.0,
+     "payload_class": "earth_observation",
+     "power_w": 4800.0,
+     "mission_duration_years": 7.0,
+     "label": "no-chassis-stated",
+     "provenance": {
+      "altitude_km": "stated",
+      "inclination_deg": "stated",
+      "payload_class": "stated",
+      "power_w": "stated",
+      "mission_duration_years": "stated"
+     }
+    },
+    "questions": [],
+    "discarded": []
+   },
+   "spec": {
+    "altitude_km": 693.0,
+    "inclination_deg": 65.0,
+    "payload_class": "earth_observation",
+    "power_w": 4800.0,
+    "mission_duration_years": 7.0,
+    "label": "no-chassis-stated",
+    "provenance": {
+     "altitude_km": "stated",
+     "inclination_deg": "stated",
+     "payload_class": "stated",
+     "power_w": "stated",
+     "mission_duration_years": "stated"
+    }
+   },
+   "fields": {
+    "altitude_km": {
+     "value": 693.0,
+     "unit": "km",
+     "kind": "stated",
+     "detail": "from the description"
+    },
+    "inclination_deg": {
+     "value": 65.0,
+     "unit": "deg",
+     "kind": "stated",
+     "detail": "sampled latitude for density (PHYSICS.md \u00a710.2)"
+    },
+    "power_w": {
+     "value": 4800.0,
+     "unit": "W",
+     "kind": "stated",
+     "detail": "from the description"
+    },
+    "mission_duration_years": {
+     "value": 7.0,
+     "unit": "yr",
+     "kind": "stated",
+     "detail": "disposal clock starts at end of mission (47 CFR 25.283(e))"
+    },
+    "payload_class": {
+     "value": "earth_observation",
+     "kind": "stated",
+     "detail": "selects the mass-model reference class"
+    },
+    "cd": {
+     "value": 2.2,
+     "kind": "stated",
+     "detail": "Free-molecular convention from data/satellite_specs.json (swept 2.0-2.4 elsewhere). Not a spec input."
+    },
+    "dry_mass_kg": {
+     "value": null,
+     "unit": "kg",
+     "kind": "refused",
+     "detail": "4800 W lies outside the reference range for this class. comparable spacecraft vary by 3.6x in kg/W (class basis, n=6), above the 2.0x limit. At this spread power does not determine mass, so no interpolation on power can resolve it.",
+     "interval": [
+      1248.0,
+      4509.1
+     ],
+     "sources": [
+      {
+       "name": "Himawari-8",
+       "mass_kg": 1300.0,
+       "power_w": 2600.0,
+       "kg_per_w": 0.5,
+       "source": "eoPortal, Himawari-8 and 9; Gunter's Space Page"
+      },
+      {
+       "name": "Sentinel-1",
+       "mass_kg": 2170.0,
+       "power_w": 4800.0,
+       "kg_per_w": 0.4521,
+       "source": "eoPortal, Copernicus Sentinel-1"
+      }
+     ]
+    },
+    "ram_area_knife_edge_m2": {
+     "value": null,
+     "unit": "m^2",
+     "kind": "refused",
+     "detail": "No chassis dimensions were stated, so sim/geometry.py has nothing to solve. Ram area is not assumed from a typical bus: that would put a fabricated number into the drag term."
+    },
+    "ram_area_broadside_m2": {
+     "value": null,
+     "unit": "m^2",
+     "kind": "refused",
+     "detail": "No chassis dimensions were stated, so sim/geometry.py has nothing to solve. Ram area is not assumed from a typical bus: that would put a fabricated number into the drag term."
+    },
+    "ballistic_coefficient_kg_m2": {
+     "value": null,
+     "unit": "kg/m^2",
+     "kind": "refused",
+     "detail": "needs a ram area, which needs a stated chassis."
+    }
+   },
+   "orbit": {
+    "segments": [
+     [
+      [
+       0.0,
+       0.0
+      ],
+      [
+       1.365,
+       0.533
+      ],
+      [
+       2.73,
+       1.067
+      ],
+      [
+       4.095,
+       1.603
+      ],
+      [
+       5.459,
+       2.14
+      ],
+      [
+       6.822,
+       2.681
+      ],
+      [
+       8.185,
+       3.225
+      ],
+      [
+       9.546,
+       3.774
+      ],
+      [
+       10.907,
+       4.328
+      ],
+      [
+       12.266,
+       4.887
+      ],
+      [
+       13.623,
+       5.454
+      ],
+      [
+       14.978,
+       6.029
+      ],
+      [
+       16.332,
+       6.612
+      ],
+      [
+       17.683,
+       7.205
+      ],
+      [
+       19.032,
+       7.808
+      ],
+      [
+       20.378,
+       8.423
+      ],
+      [
+       21.72,
+       9.05
+      ],
+      [
+       23.06,
+       9.691
+      ],
+      [
+       24.396,
+       10.348
+      ],
+      [
+       25.729,
+       11.02
+      ],
+      [
+       27.057,
+       11.71
+      ],
+      [
+       28.38,
+       12.419
+      ],
+      [
+       29.699,
+       13.148
+      ],
+      [
+       31.012,
+       13.9
+      ],
+      [
+       32.32,
+       14.675
+      ],
+      [
+       33.621,
+       15.476
+      ],
+      [
+       34.915,
+       16.305
+      ],
+      [
+       36.202,
+       17.164
+      ],
+      [
+       37.481,
+       18.054
+      ],
+      [
+       38.752,
+       18.979
+      ],
+      [
+       40.013,
+       19.942
+      ],
+      [
+       41.264,
+       20.944
+      ],
+      [
+       42.504,
+       21.989
+      ],
+      [
+       43.732,
+       23.081
+      ],
+      [
+       44.947,
+       24.222
+      ],
+      [
+       46.148,
+       25.417
+      ],
+      [
+       47.334,
+       26.669
+      ],
+      [
+       48.503,
+       27.983
+      ],
+      [
+       49.653,
+       29.364
+      ],
+      [
+       50.784,
+       30.815
+      ],
+      [
+       51.893,
+       32.344
+      ],
+      [
+       52.979,
+       33.953
+      ],
+      [
+       54.038,
+       35.65
+      ],
+      [
+       55.07,
+       37.44
+      ],
+      [
+       56.07,
+       39.329
+      ],
+      [
+       57.037,
+       41.322
+      ],
+      [
+       57.966,
+       43.424
+      ],
+      [
+       58.856,
+       45.642
+      ],
+      [
+       59.702,
+       47.978
+      ],
+      [
+       60.5,
+       50.438
+      ],
+      [
+       61.247,
+       53.022
+      ],
+      [
+       61.937,
+       55.733
+      ],
+      [
+       62.568,
+       58.568
+      ],
+      [
+       63.135,
+       61.523
+      ],
+      [
+       63.634,
+       64.593
+      ],
+      [
+       64.06,
+       67.768
+      ],
+      [
+       64.41,
+       71.035
+      ],
+      [
+       64.681,
+       74.379
+      ],
+      [
+       64.87,
+       77.783
+      ],
+      [
+       64.976,
+       81.225
+      ],
+      [
+       64.997,
+       84.684
+      ],
+      [
+       64.934,
+       88.137
+      ],
+      [
+       64.786,
+       91.563
+      ],
+      [
+       64.555,
+       94.939
+      ],
+      [
+       64.245,
+       98.247
+      ],
+      [
+       63.856,
+       101.47
+      ],
+      [
+       63.393,
+       104.594
+      ],
+      [
+       62.86,
+       107.607
+      ],
+      [
+       62.261,
+       110.503
+      ],
+      [
+       61.599,
+       113.276
+      ],
+      [
+       60.88,
+       115.924
+      ],
+      [
+       60.107,
+       118.445
+      ],
+      [
+       59.285,
+       120.843
+      ],
+      [
+       58.416,
+       123.12
+      ],
+      [
+       57.506,
+       125.279
+      ],
+      [
+       56.558,
+       127.326
+      ],
+      [
+       55.574,
+       129.266
+      ],
+      [
+       54.558,
+       131.105
+      ],
+      [
+       53.512,
+       132.847
+      ],
+      [
+       52.439,
+       134.5
+      ],
+      [
+       51.342,
+       136.068
+      ],
+      [
+       50.221,
+       137.558
+      ],
+      [
+       49.08,
+       138.973
+      ],
+      [
+       47.92,
+       140.32
+      ],
+      [
+       46.743,
+       141.603
+      ],
+      [
+       45.549,
+       142.826
+      ],
+      [
+       44.341,
+       143.993
+      ],
+      [
+       43.119,
+       145.109
+      ],
+      [
+       41.885,
+       146.177
+      ],
+      [
+       40.64,
+       147.2
+      ],
+      [
+       39.383,
+       148.182
+      ],
+      [
+       38.118,
+       149.126
+      ],
+      [
+       36.843,
+       150.033
+      ],
+      [
+       35.56,
+       150.907
+      ],
+      [
+       34.269,
+       151.751
+      ],
+      [
+       32.971,
+       152.565
+      ],
+      [
+       31.667,
+       153.353
+      ],
+      [
+       30.356,
+       154.117
+      ],
+      [
+       29.04,
+       154.857
+      ],
+      [
+       27.719,
+       155.576
+      ],
+      [
+       26.393,
+       156.275
+      ],
+      [
+       25.063,
+       156.956
+      ],
+      [
+       23.729,
+       157.62
+      ],
+      [
+       22.391,
+       158.269
+      ],
+      [
+       21.049,
+       158.903
+      ],
+      [
+       19.705,
+       159.524
+      ],
+      [
+       18.358,
+       160.133
+      ],
+      [
+       17.008,
+       160.731
+      ],
+      [
+       15.655,
+       161.319
+      ],
+      [
+       14.301,
+       161.897
+      ],
+      [
+       12.944,
+       162.468
+      ],
+      [
+       11.586,
+       163.031
+      ],
+      [
+       10.227,
+       163.588
+      ],
+      [
+       8.866,
+       164.139
+      ],
+      [
+       7.504,
+       164.686
+      ],
+      [
+       6.141,
+       165.228
+      ],
+      [
+       4.777,
+       165.767
+      ],
+      [
+       3.412,
+       166.303
+      ],
+      [
+       2.048,
+       166.838
+      ],
+      [
+       0.683,
+       167.371
+      ],
+      [
+       -0.683,
+       167.905
+      ],
+      [
+       -2.048,
+       168.438
+      ],
+      [
+       -3.412,
+       168.973
+      ],
+      [
+       -4.777,
+       169.509
+      ],
+      [
+       -6.141,
+       170.048
+      ],
+      [
+       -7.504,
+       170.59
+      ],
+      [
+       -8.866,
+       171.137
+      ],
+      [
+       -10.227,
+       171.688
+      ],
+      [
+       -11.586,
+       172.245
+      ],
+      [
+       -12.944,
+       172.808
+      ],
+      [
+       -14.301,
+       173.378
+      ],
+      [
+       -15.655,
+       173.957
+      ],
+      [
+       -17.008,
+       174.545
+      ],
+      [
+       -18.358,
+       175.143
+      ],
+      [
+       -19.705,
+       175.752
+      ],
+      [
+       -21.049,
+       176.373
+      ],
+      [
+       -22.391,
+       177.007
+      ],
+      [
+       -23.729,
+       177.656
+      ],
+      [
+       -25.063,
+       178.32
+      ],
+      [
+       -26.393,
+       179.001
+      ],
+      [
+       -27.719,
+       179.7
+      ]
+     ],
+     [
+      [
+       -29.04,
+       -179.581
+      ],
+      [
+       -30.356,
+       -178.841
+      ],
+      [
+       -31.667,
+       -178.077
+      ],
+      [
+       -32.971,
+       -177.289
+      ],
+      [
+       -34.269,
+       -176.475
+      ],
+      [
+       -35.56,
+       -175.631
+      ],
+      [
+       -36.843,
+       -174.757
+      ],
+      [
+       -38.118,
+       -173.85
+      ],
+      [
+       -39.383,
+       -172.906
+      ],
+      [
+       -40.64,
+       -171.924
+      ],
+      [
+       -41.885,
+       -170.901
+      ],
+      [
+       -43.119,
+       -169.833
+      ],
+      [
+       -44.341,
+       -168.717
+      ],
+      [
+       -45.549,
+       -167.55
+      ],
+      [
+       -46.743,
+       -166.327
+      ],
+      [
+       -47.92,
+       -165.044
+      ],
+      [
+       -49.08,
+       -163.697
+      ],
+      [
+       -50.221,
+       -162.282
+      ],
+      [
+       -51.342,
+       -160.792
+      ],
+      [
+       -52.439,
+       -159.224
+      ],
+      [
+       -53.512,
+       -157.572
+      ],
+      [
+       -54.558,
+       -155.829
+      ],
+      [
+       -55.574,
+       -153.99
+      ],
+      [
+       -56.558,
+       -152.05
+      ],
+      [
+       -57.506,
+       -150.003
+      ],
+      [
+       -58.416,
+       -147.844
+      ],
+      [
+       -59.285,
+       -145.567
+      ],
+      [
+       -60.107,
+       -143.17
+      ],
+      [
+       -60.88,
+       -140.648
+      ],
+      [
+       -61.599,
+       -138.0
+      ],
+      [
+       -62.261,
+       -135.227
+      ],
+      [
+       -62.86,
+       -132.332
+      ],
+      [
+       -63.393,
+       -129.318
+      ],
+      [
+       -63.856,
+       -126.194
+      ],
+      [
+       -64.245,
+       -122.971
+      ],
+      [
+       -64.555,
+       -119.663
+      ],
+      [
+       -64.786,
+       -116.287
+      ],
+      [
+       -64.934,
+       -112.862
+      ],
+      [
+       -64.997,
+       -109.408
+      ],
+      [
+       -64.976,
+       -105.949
+      ],
+      [
+       -64.87,
+       -102.507
+      ],
+      [
+       -64.681,
+       -99.103
+      ],
+      [
+       -64.41,
+       -95.759
+      ],
+      [
+       -64.06,
+       -92.492
+      ],
+      [
+       -63.634,
+       -89.317
+      ],
+      [
+       -63.135,
+       -86.247
+      ],
+      [
+       -62.568,
+       -83.292
+      ],
+      [
+       -61.937,
+       -80.457
+      ],
+      [
+       -61.247,
+       -77.747
+      ],
+      [
+       -60.5,
+       -75.162
+      ],
+      [
+       -59.702,
+       -72.702
+      ],
+      [
+       -58.856,
+       -70.366
+      ],
+      [
+       -57.966,
+       -68.148
+      ],
+      [
+       -57.037,
+       -66.046
+      ],
+      [
+       -56.07,
+       -64.053
+      ],
+      [
+       -55.07,
+       -62.164
+      ],
+      [
+       -54.038,
+       -60.374
+      ],
+      [
+       -52.979,
+       -58.677
+      ],
+      [
+       -51.893,
+       -57.068
+      ],
+      [
+       -50.784,
+       -55.54
+      ],
+      [
+       -49.653,
+       -54.088
+      ],
+      [
+       -48.503,
+       -52.707
+      ],
+      [
+       -47.334,
+       -51.393
+      ],
+      [
+       -46.148,
+       -50.141
+      ],
+      [
+       -44.947,
+       -48.946
+      ],
+      [
+       -43.732,
+       -47.805
+      ],
+      [
+       -42.504,
+       -46.713
+      ],
+      [
+       -41.264,
+       -45.668
+      ],
+      [
+       -40.013,
+       -44.666
+      ],
+      [
+       -38.752,
+       -43.704
+      ],
+      [
+       -37.481,
+       -42.778
+      ],
+      [
+       -36.202,
+       -41.888
+      ],
+      [
+       -34.915,
+       -41.029
+      ],
+      [
+       -33.621,
+       -40.201
+      ],
+      [
+       -32.32,
+       -39.399
+      ],
+      [
+       -31.012,
+       -38.624
+      ],
+      [
+       -29.699,
+       -37.873
+      ],
+      [
+       -28.38,
+       -37.143
+      ],
+      [
+       -27.057,
+       -36.434
+      ],
+      [
+       -25.729,
+       -35.744
+      ],
+      [
+       -24.396,
+       -35.072
+      ],
+      [
+       -23.06,
+       -34.416
+      ],
+      [
+       -21.72,
+       -33.774
+      ],
+      [
+       -20.378,
+       -33.147
+      ],
+      [
+       -19.032,
+       -32.532
+      ],
+      [
+       -17.683,
+       -31.929
+      ],
+      [
+       -16.332,
+       -31.336
+      ],
+      [
+       -14.978,
+       -30.753
+      ],
+      [
+       -13.623,
+       -30.178
+      ],
+      [
+       -12.266,
+       -29.612
+      ],
+      [
+       -10.907,
+       -29.052
+      ],
+      [
+       -9.546,
+       -28.498
+      ],
+      [
+       -8.185,
+       -27.949
+      ],
+      [
+       -6.822,
+       -27.405
+      ],
+      [
+       -5.459,
+       -26.864
+      ],
+      [
+       -4.095,
+       -26.327
+      ],
+      [
+       -2.73,
+       -25.791
+      ],
+      [
+       -1.365,
+       -25.257
+      ],
+      [
+       -0.0,
+       -24.724
+      ]
+     ]
+    ],
+    "altitude_km": 693.0,
+    "period_minutes": 98.63,
+    "note": "Ground track is illustrative display geometry. Inclination and altitude are the spec's and the period is computed from them, but lat/lon modelling is outside the validated physics (PHYSICS.md \u00a71)."
+   },
+   "compliance": null,
+   "solar_band": null,
+   "blocked": null
+  },
+  {
+   "label": "underspecified",
+   "prose": "Something like a Starlink but a bit bigger.",
+   "extraction": {
+    "complete": false,
+    "spec": null,
+    "questions": [
+     {
+      "field": "altitude_km",
+      "question": "What circular altitude should the satellite operate at, in km?",
+      "why": "Altitude drives atmospheric density over about four orders of magnitude across LEO; nothing downstream is meaningful without it."
+     },
+     {
+      "field": "inclination_deg",
+      "question": "What orbital inclination, in degrees?",
+      "why": "Inclination sets the latitude at which density is sampled (PHYSICS.md \u00a710.2). Sun-synchronous is not enough on its own: its inclination depends on altitude through J2, which this engine does not model (PHYSICS.md \u00a71)."
+     },
+     {
+      "field": "payload_class",
+      "question": "What is the payload -- earth observation, communications, navigation, or a technology demonstration?",
+      "why": "Communications satellites are roughly 3x lighter per watt than instrument-carrying ones, so the class picks which reference spacecraft the mass is interpolated between."
+     },
+     {
+      "field": "power_w",
+      "question": "What is the spacecraft's electrical power, in watts?",
+      "why": "Power is the predictor the mass model interpolates on (sim/mass_model.py). Without it there is no mass, and without a mass there is no ballistic coefficient and no verdict."
+     },
+     {
+      "field": "mission_duration_years",
+      "question": "How long is the operational mission, in years?",
+      "why": "The disposal clock starts at end of mission (47 CFR 25.283(e)), so the duration sets when the compliance window opens."
+     }
+    ],
+    "discarded": []
+   },
+   "spec": null,
+   "fields": {},
+   "orbit": null,
+   "compliance": null,
+   "solar_band": null,
+   "blocked": "The description does not determine a spec. The engine was not run; these are the questions that stand between the prose and a design."
+  }
+ ]
+}

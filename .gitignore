@@ -12,6 +12,16 @@ out/*
 !out/sweep_safe_mode_timing.png
 !out/screenshots/
 !out/screenshots/*.png
+
+# The three JSON payloads the frontend reads are committed too, for the same
+# reason as the figures: the deployed site is built by Vercel from this repo,
+# and a Node build has no Python, no pymsis and no way to regenerate them.
+# ~4.3 MB, dominated by batch.json's 49 trajectories. Regenerate with
+# `python -m sim.export`, `-m sim.sweeps`, `-m sim.studio`; the frontend's
+# sync-data step copies whatever is here into web/public/data/.
+!out/batch.json
+!out/sweeps.json
+!out/studio.json
 reference/
 web/node_modules/
 web/dist/
