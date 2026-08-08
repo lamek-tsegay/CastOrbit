@@ -1,9 +1,9 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-// Loads out/batch.json and out/sweeps.json (synced into public/data/ by
-// `npm run sync-data`) exactly once and hands them to every view via
-// context. No view fetches its own copy or transforms the shape -- every
-// number a component renders traces back to one of these two objects.
+// Loads out/batch.json, out/sweeps.json and out/studio.json (synced into
+// public/data/ by `npm run sync-data`) exactly once and hands them to every
+// view via context. No view fetches its own copy or transforms the shape --
+// every number a component renders traces back to one of these three objects.
 const DataContext = createContext(null);
 
 export function DataProvider({ children }) {
@@ -11,6 +11,7 @@ export function DataProvider({ children }) {
     status: "loading",
     batch: null,
     sweeps: null,
+    studio: null,
     error: null,
   });
 
@@ -25,12 +26,20 @@ export function DataProvider({ children }) {
         if (!r.ok) throw new Error(`sweeps.json: HTTP ${r.status}`);
         return r.json();
       }),
+      fetch(`${import.meta.env.BASE_URL}data/studio.json`).then((r) => {
+        if (!r.ok) throw new Error(`studio.json: HTTP ${r.status}`);
+        return r.json();
+      }),
     ])
-      .then(([batch, sweeps]) => {
-        if (!cancelled) setState({ status: "ready", batch, sweeps, error: null });
+      .then(([batch, sweeps, studio]) => {
+        if (!cancelled)
+          setState({ status: "ready", batch, sweeps, studio, error: null });
       })
       .catch((error) => {
-        if (!cancelled) setState({ status: "error", batch: null, sweeps: null, error });
+        if (!cancelled)
+          setState({
+            status: "error", batch: null, sweeps: null, studio: null, error,
+          });
       });
     return () => {
       cancelled = true;

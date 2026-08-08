@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
 import "./App.css";
+import "./studio.css";
 import NavTabs from "./components/NavTabs";
 import Scrubber from "./components/Scrubber";
 import { DataProvider, useData } from "./context/DataContext";
 import { PlaybackProvider } from "./context/PlaybackContext";
 import AltitudeView from "./views/AltitudeView";
 import GlobeView from "./views/GlobeView";
+import StudioView from "./views/StudioView";
 import SweepsView from "./views/SweepsView";
 import ValidationView from "./views/ValidationView";
 
@@ -18,8 +20,8 @@ export default function App() {
 }
 
 function Shell() {
-  const { status, batch, sweeps, error } = useData();
-  const [view, setView] = useState("globe");
+  const { status, batch, sweeps, studio, error } = useData();
+  const [view, setView] = useState("studio");
 
   const maxSeconds = useMemo(() => {
     if (!batch) return 0;
@@ -29,7 +31,7 @@ function Shell() {
   }, [batch]);
 
   if (status === "loading") {
-    return <CenterMessage>Loading out/batch.json and out/sweeps.json…</CenterMessage>;
+    return <CenterMessage>Loading out/batch.json, out/sweeps.json and out/studio.json…</CenterMessage>;
   }
   if (status === "error") {
     return (
@@ -37,8 +39,8 @@ function Shell() {
         Failed to load data: {String(error)}.
         <br />
         Run <code>npm run sync-data</code> after generating{" "}
-        <code>out/batch.json</code> and <code>out/sweeps.json</code>{" "}
-        (<code>python -m sim.export</code>, <code>python -m sim.sweeps</code>).
+        the three <code>out/*.json</code> files (<code>python -m sim.export</code>,{" "}
+        <code>python -m sim.sweeps</code>, <code>python -m sim.studio</code>).
       </CenterMessage>
     );
   }
@@ -60,6 +62,7 @@ function Shell() {
         <Scrubber />
 
         <main className="app-main">
+          {view === "studio" && <StudioView studio={studio} />}
           {view === "globe" && <GlobeView batch={batch} />}
           {view === "altitude" && <AltitudeView batch={batch} />}
           {view === "sweeps" && <SweepsView sweeps={sweeps} />}

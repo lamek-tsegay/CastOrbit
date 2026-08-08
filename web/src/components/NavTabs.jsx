@@ -1,4 +1,5 @@
 const VIEWS = [
+  { id: "studio", label: "Studio" },
   { id: "globe", label: "Globe" },
   { id: "altitude", label: "Altitude" },
   { id: "sweeps", label: "Sweeps" },

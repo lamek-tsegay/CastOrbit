@@ -15,7 +15,7 @@ const repoRoot = join(here, "..", "..");
 const outDir = join(repoRoot, "out");
 const destDir = join(here, "..", "public", "data");
 
-const files = ["batch.json", "sweeps.json"];
+const files = ["batch.json", "sweeps.json", "studio.json"];
 
 mkdirSync(destDir, { recursive: true });
 
@@ -36,7 +36,8 @@ if (missing.length) {
       missing.join("\n  ") +
       "\nGenerate them first:\n" +
       "  .venv/bin/python -m sim.export   (writes out/batch.json)\n" +
-      "  .venv/bin/python -m sim.sweeps   (writes out/sweeps.json)\n"
+      "  .venv/bin/python -m sim.sweeps   (writes out/sweeps.json)\n" +
+      "  .venv/bin/python -m sim.studio   (writes out/studio.json)\n"
   );
   process.exit(1);
 }
