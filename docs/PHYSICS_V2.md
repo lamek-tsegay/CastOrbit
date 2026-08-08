@@ -255,3 +255,94 @@ lands near **454 km**:
 | IADC 25-year | 475 km | 543 km | 701 km |
 
 Pinned in `tests/test_disposal.py::test_the_briefs_550km_figure_is_the_25_year_threshold`.
+
+---
+
+## V2.6 Projected area from geometry (Phase 8)
+
+At 200–700 km the flow is free-molecular: the mean free path is kilometres, so
+molecules strike the satellite and are re-emitted without colliding with each
+other on the way in. There is no boundary layer and no wake pressure recovery.
+Drag is therefore proportional to the area geometrically projected onto the
+plane perpendicular to the velocity vector, with the accommodation physics
+bundled into `Cd` (`PHYSICS.md` §2).
+
+**Convex body, projected onto the plane perpendicular to `v`:**
+
+```
+A_proj = (1/2) * sum_i A_i |n_i . v|
+```
+
+For a box with edges `L`, `W`, `T` along the body axes the six faces pair up:
+
+```
+A_proj = |vx|*(W*T) + |vy|*(L*T) + |vz|*(L*W)
+```
+
+giving the closed-form extremes used to validate the numerical direction
+search:
+
+```
+min = min(W*T, L*T, L*W)                       (face-on to the smallest face)
+max = sqrt((W*T)^2 + (L*T)^2 + (L*W)^2)        (corner-on, along the diagonal)
+```
+
+**Flat plate** of area `A` at angle `theta` between its normal and `v`:
+`A_proj = A*cos(theta)`, the Phase 8 gate's analytic check. Plates carry a
+1 cm thickness rather than zero, deliberately — a zero-thickness plate presents
+exactly zero area edge-on, which would make a feathered array look drag-free.
+
+### Two solvers, and why the difference is worth keeping
+
+`projected_area` sums each part's analytic projection. `projected_area_union`
+projects every vertex, takes each part's convex hull in the projection plane,
+and rasterises the union. The first is fast and is an **upper bound**: two
+parts overlapping in projection get counted twice. The second is correct under
+occlusion. Their difference is the self-shadowing fraction — a quantity to
+report, not an error to remove.
+
+Same pattern as the `montecarlo.py` / `critical.py` agreement the project
+already relies on: two paths through entirely different code reaching the same
+number is the cheapest real correctness check available.
+
+### Findings
+
+**1 — The published 4.48 m² maximum is a face-on chassis, not a broadside.**
+Chassis face-on is 2.8×1.3 = 3.64 m² or 3.0×1.5 = 4.50 m² for the two sourced
+dimension pairs; the latter agrees with Baruah's published maximum to 0.45%. A
+genuine broadside including the solar array is ~15 m², more than three times
+larger. It is not even the chassis's own geometric maximum — corner-on gives
+4.65 m², 3.3% higher. So 4.48 m² is best read as *chassis face-on, array
+feathered*, which is consistent with the knife-edge attitude the February 2022
+fleet was actually commanded into.
+
+**2 — A fourth independent line on the effective drag parameter.** The README
+documents three diagnostics converging on `rho*Cd*A`. This is a fourth, and
+the first that never touches a decay curve:
+
+| Route | `Cd` | `A` | `Cd*A` |
+|---|---|---|---|
+| Baruah et al. | 1.0 (stated simplification) | 1.00 m² | 1.00 m² |
+| Geometry + free-molecular convention | 2.2 | 0.405 m² | 0.89 m² |
+
+Two different splits of a product that is not separately observable, landing
+11% apart. The geometry-derived knife-edge range (0.27–0.61 m²) also
+reproduces the *secondary-source* range recorded in `satellite_specs.json`
+(0.3–0.7 m²) rather than Baruah's 1.00 m² — which is a stated lower bound on a
+swept range, not a measurement.
+
+This is what V2_BRIEF.md §2 meant by pinning `A` from geometry to attack the
+degeneracy rather than document it.
+
+### Limitations specific to this solver
+
+- **Attitude is an input, never an output.** The solver says what area an
+  attitude presents; it never predicts what attitude a satellite settles into.
+  Aerodynamic torque and attitude dynamics remain excluded (`PHYSICS.md` §1).
+- **`NOMINAL` attitude is a conservative convention, not a measurement.** It is
+  taken as the maximum-area orientation. Real operating attitude is set by
+  pointing requirements. Sweep it if an answer depends on it.
+- **The array chord is the weakest input.** Span is derived from a published
+  ~11 m end-to-end figure; chord is assumed equal to the chassis width and is
+  not independently sourced. It is tagged `estimated` and swept.
+- **Rigid plates.** No panel flexure.
