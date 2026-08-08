@@ -89,7 +89,21 @@ BOUNDS: dict[str, tuple[float, float]] = {
     "mission_duration_years": (0.01, 30.0),
     "propellant_available_kg": (0.0, 5000.0),
     "isp_s": (50.0, 5000.0),
+    # Geometry. These are design *inputs* -- a chassis is something you choose,
+    # like power. The engine computes projected area FROM them (sim/geometry.py);
+    # it is the area, not the dimensions, that a spec may never assert.
+    "bus_length_m": (0.05, 20.0),
+    "bus_width_m": (0.05, 20.0),
+    "bus_thickness_m": (0.01, 10.0),
+    "solar_array_span_m": (0.05, 60.0),
+    "solar_array_chord_m": (0.05, 20.0),
 }
+
+#: Optional geometry inputs. All-or-nothing for the bus: a partial chassis
+#: cannot be solved, and filling the gap with a typical value is exactly the
+#: fabrication this schema exists to prevent.
+BUS_FIELDS = ("bus_length_m", "bus_width_m", "bus_thickness_m")
+ARRAY_FIELDS = ("solar_array_span_m", "solar_array_chord_m")
 
 REQUIRED_FIELDS = (
     "altitude_km", "inclination_deg", "payload_class", "power_w",
@@ -138,8 +152,23 @@ class MissionSpec:
     propellant_available_kg: float | None = None
     isp_s: float | None = None
     target_altitude_km: float | None = None
+    bus_length_m: float | None = None
+    bus_width_m: float | None = None
+    bus_thickness_m: float | None = None
+    solar_array_span_m: float | None = None
+    solar_array_chord_m: float | None = None
     label: str = "unnamed"
     provenance: dict[str, str] = field(default_factory=dict)
+
+    @property
+    def has_geometry(self) -> bool:
+        """Whether the spec determines a chassis the area solver can use.
+
+        False means `sim/geometry.py` has nothing to solve and ram area is
+        refused rather than assumed -- the same posture the mass model takes
+        when the table cannot support an estimate.
+        """
+        return all(getattr(self, f) is not None for f in BUS_FIELDS)
 
     def __post_init__(self):
         validate_spec_payload(self.as_payload())
@@ -154,7 +183,8 @@ class MissionSpec:
             "mission_duration_years": self.mission_duration_years,
             "label": self.label,
         }
-        for k in ("epoch", "propellant_available_kg", "isp_s", "target_altitude_km"):
+        for k in ("epoch", "propellant_available_kg", "isp_s", "target_altitude_km",
+                  *BUS_FIELDS, *ARRAY_FIELDS):
             v = getattr(self, k)
             if v is not None:
                 out[k] = v
@@ -229,6 +259,21 @@ def validate_spec_payload(payload: dict) -> None:
             "not a mission"
         )
 
+    given_bus = [f for f in BUS_FIELDS if payload.get(f) is not None]
+    if given_bus and len(given_bus) != len(BUS_FIELDS):
+        raise SpecError(
+            f"partial bus geometry: got {sorted(given_bus)}, need all of "
+            f"{list(BUS_FIELDS)}. A missing dimension cannot be filled with a "
+            "typical value -- state all three or none, and the area will be "
+            "refused rather than guessed."
+        )
+    given_array = [f for f in ARRAY_FIELDS if payload.get(f) is not None]
+    if given_array and len(given_array) != len(ARRAY_FIELDS):
+        raise SpecError(
+            f"partial array geometry: got {sorted(given_array)}, need both of "
+            f"{list(ARRAY_FIELDS)}."
+        )
+
     if payload.get("epoch") is not None:
         try:
             datetime.fromisoformat(payload["epoch"])
@@ -246,6 +291,7 @@ def spec_from_payload(payload: dict, provenance: dict | None = None) -> MissionS
         "altitude_km", "inclination_deg", "payload_class", "power_w",
         "mission_duration_years", "epoch", "propellant_available_kg",
         "isp_s", "target_altitude_km", "label",
+        *BUS_FIELDS, *ARRAY_FIELDS,
     }
     unknown = sorted(set(payload) - known - {"provenance"})
     if unknown:
