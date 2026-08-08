@@ -712,7 +712,7 @@ questioned and one that doesn't ([`docs/ARCHITECTURE.md` §1](docs/ARCHITECTURE.
    low/mean/high activity levels and report a band. Read those as **bounds,
    not scenarios** — no real 25-year period sits at one level, since the solar
    cycle is ~11 years.
-11. **Mass estimation is stage 1 only, and fails its gate.** See
+11. **Mass estimation is interpolation only, and fails its own bar.** See
    [Mass estimation that refuses to guess](#mass-estimation-that-refuses-to-guess).
 
 Full list with sourcing: [PHYSICS.md §10](PHYSICS.md#10-known-limitations).
