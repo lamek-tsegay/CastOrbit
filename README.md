@@ -73,6 +73,16 @@ a single systematic offset in `rho·Cd·A`, not a bug specific to one
 configuration — see `density_scale_diagnostic` in
 [`sim/validate.py`](sim/validate.py).
 
+**What is robust here is the agreement, not the multiplier.** Both bisections
+run at the paper's stated 227 kg, and mass is tagged `disputed` (227–303 kg) in
+the spec file, so the absolute correction is conditional on that choice — at
+303 kg the same two bisections return ×1.576 and ×1.608 rather than ×1.181 and
+×1.204. The *disagreement between the two cases*, however, is **2.04% at every
+mass in the disputed range**: shared inputs cancel in the comparison even
+though they move both values together. So diagnostics 1 and 2 establish
+"one systematic offset, not two configuration-specific bugs" firmly, and
+"the offset is ~18%" only as far as Baruah's 227 kg holds.
+
 **3 — The fleet loss count, from a completely different angle.** The first two
 diagnostics adjust density while holding Cd and A at Baruah's own values. The
 fleet reproduction does the opposite: it holds density fixed (scale 1.0) and
@@ -99,6 +109,17 @@ Compare that to Baruah's own effective drag range, `Cd * A = 1.0 * [1.00,
 between them (roughly 15% at both ends) is the same ~15–20% correction found
 by diagnostics 1 and 2, arrived at from the fleet's *loss count* rather than
 any single satellite's decay curve, using a different Cd convention entirely.
+
+Unlike the point-to-point comparisons elsewhere on this page, this one is
+**interval against interval**, endpoint by endpoint — both sides are ranges and
+both are shown. It also survives the obvious objection. The fit is run at
+Cd = 2.2, so the *area* range it returns is Cd-dependent by construction; but
+the loss count depends only on the product `rho·Cd·A`, so refitting at a
+different Cd moves the area inversely and leaves the product alone. Refitting
+at Cd = 2.0 and Cd = 2.4 gives fitted areas of 0.58–2.58 m² and 0.48–2.15 m²
+respectively, and a `Cd·A` of **[1.15, 5.16] m² in all three cases — invariant
+to 0.12%**. Diagnostic 3 determines the product directly, which is exactly the
+quantity that is observable.
 
 **4 — The geometry, which never touches a decay curve at all.** The first three
 diagnostics all read the answer out of how fast something fell. That is a
@@ -147,12 +168,24 @@ is weaker and differently shaped:
 - **Containment, not coincidence.** The geometry-derived range [0.54, 1.46] m²
   contains Baruah's 1.00 m². Had it excluded it, that would have been a real
   problem for one of the two routes. It doesn't.
-- **Independence is what it adds.** This is the only one of the four that never
-  integrates anything — no atmosphere model, no integrator, no decay curve. The
-  first three could all be wrong together if NRLMSIS or the propagation were
-  systematically off; this one could not fail the same way. A fourth
-  *correlated* line of evidence would be worth much less than a weak
-  *uncorrelated* one.
+- **Independence is what it adds — and it is independence of a specific
+  thing.** This is the only one of the four that never integrates anything: no
+  atmosphere model, no integrator, no decay curve. The first three could all be
+  wrong together if NRLMSIS or the propagation were systematically off; this
+  one could not fail that way. A fourth *correlated* line of evidence would be
+  worth much less than a weak *uncorrelated* one.
+
+  **The claim is independence of the atmosphere model and the propagation, not
+  of all inputs.** It shares the chassis dimensions with the geometry solver
+  used everywhere else in V2, and it shares the `Cd` convention with the
+  project's own runs. If the sourced dimensions are wrong, this diagnostic is
+  wrong — but it is wrong in a way the other three are not, and they are wrong
+  in ways it is not. That is the whole value: the failure modes do not overlap.
+  Worth stating explicitly because
+  [What comes next](#what-comes-next) warns that composing the `Cd·A` and mass
+  intervals would double-count their *shared geometry input* — a real
+  dependency, and a different one. Sharing an input with a downstream
+  calculation does not make a diagnostic dependent on the atmosphere model.
 - It also reproduces the *secondary-source* knife-edge figures in the spec file
   (0.3–0.7 m²) rather than Baruah's 1.00 m² — which is a stated lower bound on
   a swept range, not a measurement.
@@ -331,14 +364,23 @@ call each other — the sweep integrates 49 trajectories numerically; the solver
 bisects `rho(h) = rho_crit(h)` from [PHYSICS.md §4](PHYSICS.md#4-critical-altitude)
 using nothing but the atmosphere model. They agree anyway: the 50% survival
 crossing in the Monte Carlo sweep sits at **182.2 km**, and the independently
-computed critical-altitude band (mid-range Cd = 2.2, A = 2.74 m²) is
-**181.3–187.7 km** — the numerical result falls inside the analytic band, near
-its lower edge, which is where it should sit: the ensemble also varies Cd, A,
-mass and thrust around the sweep's mid-range point, so the *fraction* crossing
-50% survival at any given altitude is pulled slightly below the single-point
-estimate. Two different pieces of code, built for different purposes, landing
-on the same altitude, is the closest thing this project has to a free
-correctness check.
+computed critical-altitude band is **181.3–187.7 km** — the numerical result
+falls inside the analytic band, near its lower edge, which is where it should
+sit: the ensemble also varies Cd, A, mass and thrust around the sweep's
+mid-range point, so the *fraction* crossing 50% survival at any given altitude
+is pulled slightly below the single-point estimate. Two different pieces of
+code, built for different purposes, landing on the same altitude, is the
+closest thing this project has to a free correctness check.
+
+**What that band is, precisely.** It is the analytic critical altitude varying
+*over the storm window* at fixed mid-range parameters (Cd = 2.2, A = 2.74 m²) —
+a time band, not a parameter-uncertainty band. Sweeping the published Cd
+(2.0–2.4) and area (1.00–4.48 m²) ranges instead gives **154.6–206.0 km**, a
+51 km spread against the 6.5 km quoted here. The 182.2 km crossing sits inside
+both, so the check holds either way, but it is worth being exact about which
+band it landed in: the tight one is a like-for-like comparison at matched
+parameters, which is what makes it a meaningful cross-check rather than a
+trivially satisfied one.
 
 The vectorised ensemble propagator is also pinned against the scalar
 propagation path used for the Baruah validation
@@ -404,11 +446,18 @@ an LLM never produces a kilogram figure.
 each with published *dry* mass and published power, chosen before any
 prediction was computed:
 
-| Spacecraft | Actual | Predicted | Error |
-|---|---|---|---|
-| PROBA-V | 140 kg | 192 kg | **+37.0%** |
-| Sentinel-2 | 1016 kg | 1018 kg | +0.2% |
-| GOES-16 | 2857 kg | 1863 kg | **−34.8%** |
+| Spacecraft | Actual | Predicted | Error | Method's own range |
+|---|---|---|---|---|
+| PROBA-V | 140 kg | 192 kg | **+37.0%** | 83–301 kg (3.6×) |
+| Sentinel-2 | 1016 kg | 1018 kg | +0.2% | 769–1424 kg (1.9×) |
+| GOES-16 | 2857 kg | 1863 kg | **−34.8%** | 1040–3758 kg (3.6×) |
+
+**The last column is not decoration.** Every point prediction here stands in
+front of a range spanning 1.9–3.6×, so the error percentages are far more
+precise-looking than the method is. In particular **+0.2% is not accuracy** —
+it is one draw landing near the centre of a range 1.9× wide. Quoting it
+without the range beside it would repeat exactly the mistake the
+[`Cd·A` diagnostic](#the-central-finding) was rewritten to avoid.
 
 ### The PROBA-V finding: a method limit, not a data gap
 
