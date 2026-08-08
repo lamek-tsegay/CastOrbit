@@ -100,6 +100,11 @@ computed, show that clearly rather than faking a result.
 │   ├── satellite.py        config dataclasses, ThrusterMode enum
 │   ├── mission.py          V2 entry point: arbitrary altitude/inclination/epoch
 │   ├── disposal.py         V2 delta-v, propellant, compliance verdict
+│   ├── geometry.py         projected-area solver, geometry -> ram area
+│   ├── mass_model.py       stage-1 mass interpolation, refuses when unresolvable
+│   ├── bounded.py          mass interval -> Bc -> decay -> verdict
+│   ├── spec.py             the prose/engine boundary; FORBIDDEN_FIELDS
+│   ├── prose.py            prose -> spec, and the constrained-JSON contract
 │   ├── montecarlo.py       batch runs, outcome taxonomy
 │   ├── sweeps.py           insertion altitude, ram area, safe-mode timing
 │   ├── export.py           JSON emission for the frontend
@@ -111,6 +116,7 @@ computed, show that clearly rather than faking a result.
 │   ├── SW-All.csv                  CelesTrak space weather indices
 │   ├── satellite_specs.json        hardware, each field source + confidence tagged
 │   ├── disposal_rules.json         post-mission disposal rules, each cited
+│   ├── reference_satellites.json   20 sourced spacecraft for mass interpolation
 │   ├── event_feb2022.json          validation target parameters
 │   └── starlink_snapshot.txt       TLE snapshot, offline use
 │
@@ -181,6 +187,7 @@ passed.
 | 7 — Generalise the engine | ✅ PASS | Baruah within 0.0012% of V1 fixed step; 705 km × 25 yr in 0.28 s; disposal Δv matches hand calculation |
 | 8 — Geometry and projected area | ✅ PASS | `A·cos θ` within 0.67%; v1.5 knife-edge/broadside bracket 1.00–4.48 m² |
 | **9 — Mass closure, stage 1** | **❌ FAIL — 1 of 3 within 25%** | See below |
+| 10 — LLM front door | ✅ PASS | Ten varied descriptions produce schema-valid specs; eight underspecified inputs ask rather than invent; a rogue model response carrying `dry_mass_kg` is rejected |
 
 **Gate 9 failed and stays failed.** Held-out dry mass: Sentinel-2 +0.2%,
 PROBA-V +37.0%, GOES-16 −34.8%.
