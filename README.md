@@ -1,13 +1,19 @@
 # CastOrbit
 
-A physics-grounded simulator of Starlink satellite survival in very low Earth
-orbit during geomagnetic storms, validated against the published February 2022
-Starlink loss before being pointed at anything else.
+A satellite design tool built on an orbital-decay engine that was validated
+against the published February 2022 Starlink loss before being pointed at
+anything else.
 
 **The one-line result:** the model's drag term runs 15–20% low against reality
-at 210 km, confirmed three independent ways — and once that single correction
+at 210 km, confirmed four independent ways — and once that single correction
 is applied, the model's picture of the February 2022 loss is consistent with
 what happened.
+
+Describe a satellite and a mission; the engine sizes it, flies it, and says
+whether it complies with post-mission disposal rules. **The February 2022
+reproduction is not legacy code — it is the reason to believe any of the rest**,
+and it is a regression test that has to keep passing
+([`docs/V2_BRIEF.md`](docs/V2_BRIEF.md) §1).
 
 This is not a satellite tracker or a 3D visualisation of public TLE data. Every
 number below was computed from the equations in [PHYSICS.md](PHYSICS.md) and
@@ -19,6 +25,12 @@ Adversely Affect Assets in Low-Earth Orbit.* Space Weather, 22, e2023SW003716
 other external source this project cites — the atmosphere model, the space
 weather indices, the satellite hardware figures — is indexed in
 [`docs/SOURCES.md`](docs/SOURCES.md).
+
+**Where the model refuses to answer, it says so.** Two of three held-out mass
+predictions are declined rather than guessed, and a compliance verdict resting
+on an unresolved mass does not render at all. That is
+[a failed gate, recorded](#mass-estimation-that-refuses-to-guess), not a
+feature list.
 
 ---
 
