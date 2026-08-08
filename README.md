@@ -1,19 +1,32 @@
 # CastOrbit
 
-A satellite design tool built on an orbital-decay engine that was validated
-against the published February 2022 Starlink loss before being pointed at
-anything else.
+**What it is.** A satellite design tool built on a hand-written orbital-decay
+engine. Describe a satellite and a mission; it sizes it, flies it, and says
+whether it complies with post-mission disposal rules — or declines to say, when
+its inputs cannot support an answer.
 
-**The one-line result:** the model's drag term runs 15–20% low against reality
-at 210 km, confirmed four independent ways — and once that single correction
-is applied, the model's picture of the February 2022 loss is consistent with
-what happened.
+**The central finding.** `rho`, `Cd` and `A` are inseparable from a decay curve
+— only the product is observable — and the model's drag term runs 15–20% low at
+210 km, found [four independent ways](#the-central-finding), the fourth without
+integrating anything.
 
-Describe a satellite and a mission; the engine sizes it, flies it, and says
-whether it complies with post-mission disposal rules. **The February 2022
-reproduction is not legacy code — it is the reason to believe any of the rest**,
-and it is a regression test that has to keep passing
-([`docs/V2_BRIEF.md`](docs/V2_BRIEF.md) §1).
+**Validation.** Reproduces the February 2022 Starlink loss against Baruah et
+al. (2024): **+18.2%** and **−18.5%** decay-timing error on the two published
+bounding cases, both inside the paper's own 20% acceptance band. 192 tests.
+That reproduction is a regression test, not legacy code — it is the reason to
+believe anything else here.
+
+| | |
+|---|---|
+| [The central finding](#the-central-finding) | Four diagnostics on `Cd·A`, and what each is conditional on |
+| [Validation](#validation) | **The credibility.** Feb 2022, Baruah reproduction, Swarm C |
+| [Uncertainty exceeds signal](#uncertainty-exceeds-signal) | The atmosphere model moves the answer 2× further than the storm |
+| [Two independent code paths agree](#two-independent-code-paths-agree) | Monte Carlo vs analytic solver, and the scope of that check |
+| [Which uncertainty is worth attacking](#which-uncertainty-is-worth-attacking) | `Cd·A` is reducible; mass is not. The actionable result |
+| [Mass estimation that refuses to guess](#mass-estimation-that-refuses-to-guess) | Gate 9 **FAIL**, recorded, with the method limit that caused it |
+| [Limitations](#limitations) · [How to run](#how-to-run) | Including the ones that make a verdict non-renderable |
+
+---
 
 This is not a satellite tracker or a 3D visualisation of public TLE data. Every
 number below was computed from the equations in [PHYSICS.md](PHYSICS.md) and
