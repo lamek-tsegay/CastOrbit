@@ -290,6 +290,110 @@ integrator in this codebase, not two that could quietly drift apart.
 
 ---
 
+## Mass estimation that refuses to guess
+
+A design tool has to turn a mission into a mass, because mass sets the
+ballistic coefficient and therefore every decay number downstream. V2 does
+this by interpolating between real spacecraft — 20 sourced entries from a
+5.2 kg CubeSat to a 3650 kg GEO comsat
+([`reference_satellites.json`](data/reference_satellites.json)). Nothing is
+fitted; no coefficient appears in [`sim/mass_model.py`](sim/mass_model.py), and
+an LLM never produces a kilogram figure.
+
+**Gate 9 failed. 1 of 3.** Three spacecraft were held out — one per size class,
+each with published *dry* mass and published power, chosen before any
+prediction was computed:
+
+| Spacecraft | Actual | Predicted | Error |
+|---|---|---|---|
+| PROBA-V | 140 kg | 192 kg | **+37.0%** |
+| Sentinel-2 | 1016 kg | 1018 kg | +0.2% |
+| GOES-16 | 2857 kg | 1863 kg | **−34.8%** |
+
+### The PROBA-V finding: a method limit, not a data gap
+
+The obvious reading of a 37% miss is that the table is too thin, and the
+obvious fix is more rows. That reading is wrong here, and the distinction is
+the most useful thing this phase produced.
+
+**PROBA-V (320 W, 140 kg) and Deimos-2 (330 W, 310 kg) are real spacecraft at
+essentially identical power whose masses differ by 2.2×.** Across the
+earth-observation class, kg/W spans 3.6×. No predictor taking power alone can
+separate those two spacecraft — not with a denser table, not with a better
+interpolation scheme, not at all. The 25% bar is unreachable at the small end
+by construction. Adding rows cannot fix a predictor that lacks the information.
+
+GOES-16 misses for a different and more ordinary reason: at 0.714 kg/W it is
+simply heavier per watt than both its neighbours (0.500 and 0.452) — a
+six-instrument payload on a 15-year GEO bus. A population outlier, not an
+arithmetic error.
+
+### So the method was bounded, not extended
+
+Rather than build the component-level mass estimating relationships that
+[`V2_BRIEF.md`](docs/V2_BRIEF.md) §5 defers to stage 2, the existing method now
+declines to answer where it cannot. A point estimate is withheld when the
+bracketing spacecraft are more than 4× apart in power, or when kg/W among
+comparable spacecraft varies by more than 2×. Re-scored, **table unchanged**:
+
+| Spacecraft | Actual | Result | Range | Contains actual |
+|---|---|---|---|---|
+| PROBA-V | 140 kg | refused | 83–301 kg | ✅ |
+| Sentinel-2 | 1016 kg | 1018 kg (+0.2%) | 769–1424 kg | ✅ |
+| GOES-16 | 2857 kg | refused | 1040–3758 kg | ✅ |
+
+All three ranges contain the truth, and the two that missed the bar are exactly
+the two now refused. **The gate is still recorded as failed** — one of three —
+in [`docs/ARCHITECTURE.md` §5](docs/ARCHITECTURE.md). A gate that failed and was
+recorded is worth more than one quietly relaxed until it passed.
+
+One design detail was nearly a trap and is worth stating. The natural way to
+build the interval is from *local* kg/W scatter near the requested power.
+Measured before being wired up, PROBA-V's local window holds three spacecraft
+whose kg/W agree to within 1.17× — which would have produced a **tight**
+interval excluding the true mass by a factor of two. A confident-looking wrong
+interval is worse than a wrong point estimate, because it also claims to know
+its own error. Local scatter is therefore only used with at least four samples;
+otherwise the class-wide spread applies.
+
+### The refusal propagates
+
+```
+mass interval  ->  ballistic coefficient  ->  decay time  ->  compliance
+   [lo, hi]         Bc = m/(Cd*A)            propagated       verdict at
+                    monotone increasing      at both ends     both ends
+```
+
+Every step is monotone in mass — heavier means a higher ballistic coefficient,
+slower decay, and harder compliance — so the two endpoints bound every interior
+value exactly. **A compliance verdict resting on an unresolved mass does not
+render**: it returns `NOT_ASSESSABLE` with `renderable = False`, and the mass
+model's reasons pass through verbatim. A verdict that flips between the
+endpoints returns `AMBIGUOUS`, also non-renderable — at 420 km a 1700 W design
+complies naturally at the light end of its own mass uncertainty and needs a
+disposal burn at the heavy end, so the mass interval decides the answer rather
+than the design.
+
+### What comes next, and which term will dominate
+
+`Cd·A` and mass are currently bounded **separately**. The compliance
+propagation above treats ram area as exact, and the geometry solver's own
+0.27–0.61 m² knife-edge range is not composed with the mass interval. Doing so
+is the next step, and it is not just bookkeeping: the two are not independent,
+because the same geometry that sets `A` also constrains the bus volume that
+correlates with mass.
+
+**Mass is expected to dominate, by roughly a factor of two.** The mass interval
+runs 3.6× wide at the small end where the method refuses; the geometry range is
+about 2.3× wide (0.27 to 0.61 m²) and is bounded by *sourced dimensions* rather
+than by population scatter, so it tightens as sourcing improves. The mass
+spread does not — it is irreducible under a power-only predictor, as PROBA-V
+shows. Composing them without saying which dominates would obscure exactly the
+thing a designer needs to know: better spacecraft dimensions will not help,
+and a second mass predictor will.
+
+---
+
 ## Limitations
 
 Stating these first is the difference between a result that survives being
