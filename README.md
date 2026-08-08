@@ -350,6 +350,46 @@ integrator in this codebase, not two that could quietly drift apart.
 
 ---
 
+## Which uncertainty is worth attacking
+
+Two quantities dominate every number this tool produces: the effective drag
+parameter `Cd·A`, and dry mass. Both are bounded rather than known. **They are
+not bounded in the same way, and the difference is the single most actionable
+result in the project.**
+
+| | Range | Width | Bounded by | Reducible? |
+|---|---|---|---|---|
+| `Cd·A` (knife-edge) | 0.54–1.46 m² | **2.7×** | sourced chassis dimensions and the `Cd` convention | **Yes** — better sourcing narrows it |
+| Dry mass (small end) | 83–301 kg | **3.6×** | population scatter between real spacecraft | **No** — not under a power-only predictor |
+
+The mass spread is wider, but width is not the point. The point is that one of
+these shrinks if you go and find better numbers, and the other does not.
+
+**The evidence that mass is irreducible is a single pair of real spacecraft.**
+PROBA-V draws 320 W and masses 140 kg. Deimos-2 draws 330 W and masses 310 kg.
+Essentially identical power, **2.2× apart in mass**. No predictor taking power
+alone can separate them — not with a denser table, not with a better
+interpolation scheme. Across the earth-observation class, kg/W spans 3.6× for
+exactly this reason. That is a property of the spacecraft population, not of
+the table.
+
+The `Cd·A` range is different in kind. Its 2.7× width comes from two disputed
+chassis dimension pairs and a 2.0–2.4 drag convention — all of which are
+*sourcing problems*. A published chassis drawing would collapse most of it.
+Phase 8 already narrowed the plausible range from 4.0× to 2.7× just by solving
+geometry rather than assuming area.
+
+**So the instruction to a designer is specific: better spacecraft dimensions
+will help, and a second mass predictor is the only thing that will help the
+mass.** Chasing more reference satellites is the intuitive move and the wrong
+one. That is what [`V2_BRIEF.md`](docs/V2_BRIEF.md) §5's stage 2 is for, and it
+is now a measured conclusion rather than an assumed one.
+
+The rest of this section is how the mass model behaves given that it cannot
+resolve, and the gate it failed proving it.
+
+---
+
 ## Mass estimation that refuses to guess
 
 A design tool has to turn a mission into a mass, because mass sets the
@@ -434,23 +474,22 @@ complies naturally at the light end of its own mass uncertainty and needs a
 disposal burn at the heavy end, so the mass interval decides the answer rather
 than the design.
 
-### What comes next, and which term will dominate
+### What comes next
 
 `Cd·A` and mass are currently bounded **separately**. The compliance
 propagation above treats ram area as exact, and the geometry solver's own
 0.27–0.61 m² knife-edge range is not composed with the mass interval. Doing so
 is the next step, and it is not just bookkeeping: the two are not independent,
 because the same geometry that sets `A` also constrains the bus volume that
-correlates with mass.
+correlates with mass. Multiplying two intervals that share an input would
+double-count that input and overstate the result.
 
-**Mass is expected to dominate, by roughly a factor of two.** The mass interval
-runs 3.6× wide at the small end where the method refuses; the geometry range is
-about 2.3× wide (0.27 to 0.61 m²) and is bounded by *sourced dimensions* rather
-than by population scatter, so it tightens as sourcing improves. The mass
-spread does not — it is irreducible under a power-only predictor, as PROBA-V
-shows. Composing them without saying which dominates would obscure exactly the
-thing a designer needs to know: better spacecraft dimensions will not help,
-and a second mass predictor will.
+On current numbers the mass term is the wider of the two (3.6× against 2.7×),
+but as
+[Which uncertainty is worth attacking](#which-uncertainty-is-worth-attacking)
+sets out, that ordering is the less important half of the comparison —
+reducibility is what determines where effort pays off, and the two terms differ
+there far more sharply than they differ in width.
 
 ---
 
