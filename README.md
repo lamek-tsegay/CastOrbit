@@ -50,8 +50,9 @@ coefficient is off, or because the ram area is smaller than assumed — only the
 product is observable from an altitude history. That degeneracy turns out to
 be the whole story here.
 
-**Three independent diagnostics find the same ~15–20% deficit in that
-product**, each holding a different piece fixed:
+**Four independent diagnostics find the same ~15–20% deficit in that
+product**, each holding a different piece fixed. The first three are decay
+curves; the fourth never touches one.
 
 **1 — Baruah's 4.48 m² bounding case.** Reproducing the paper's own convention
 (Cd = 1.0, mass 227 kg, thrusters off) at the maximum ram area, the model
@@ -98,7 +99,38 @@ Compare that to Baruah's own effective drag range, `Cd * A = 1.0 * [1.00,
 between them (roughly 15% at both ends) is the same ~15–20% correction found
 by diagnostics 1 and 2, arrived at from the fleet's *loss count* rather than
 any single satellite's decay curve, using a different Cd convention entirely.
-Three methods, three different pieces of evidence, one number.
+
+**4 — The geometry, which never touches a decay curve at all.** The first three
+diagnostics all read the answer out of how fast something fell. That is a
+genuine weakness: they share an atmosphere model, an integrator, and the
+assumption that the observed decay is telling you about drag rather than about
+something else. A fourth line of evidence that never integrates anything is
+worth more than a fourth that does.
+
+The projected-area solver ([`sim/geometry.py`](sim/geometry.py), Phase 8) takes
+the chassis dimensions and deployed span from
+[`satellite_specs.json`](data/satellite_specs.json) and computes the area
+presented to the flow, for any attitude. In the knife-edge attitude the
+February 2022 fleet was actually commanded into, it gives **0.27–0.61 m²**
+across the swept dimension range, nominally 0.405 m². Combined with this
+project's standard free-molecular `Cd = 2.2`:
+
+| Route | `Cd` | `A` | `Cd·A` |
+|---|---|---|---|
+| Baruah et al. | 1.0 (stated simplification) | 1.00 m² | **1.00 m²** |
+| Geometry + free-molecular convention | 2.2 | 0.405 m² | **0.89 m²** |
+
+Two different splits of a product that is not separately observable, landing
+**11% apart** — reached from a ruler and a drag convention rather than from an
+altitude history. The geometry-derived range also reproduces the *secondary
+source* knife-edge figures recorded in the spec file (0.3–0.7 m²) rather than
+Baruah's 1.00 m², which is a stated lower bound on a swept range, not a
+measurement.
+
+Four methods, four different kinds of evidence, one number. This is what
+V2 was for: pinning `A` from geometry constrains one of the three inseparable
+factors by construction instead of by assumption
+([`docs/V2_BRIEF.md`](docs/V2_BRIEF.md) §2).
 
 **What this means:** presenting "Cd = 2.2 loses everyone, Cd = 1.0 roughly
 matches" as a contradiction between two arbitrary choices would be the wrong
