@@ -181,6 +181,42 @@ living only here.
 Lifting this limitation means adding eccentricity to the state vector, which
 is a change to `PHYSICS.md` §1 and §3, not a V2 addition.
 
+### Eccentricity is the highest-value remaining physics extension
+
+Of everything still missing from this model, adding `e` to the state buys the
+most, and it is worth stating why rather than leaving it as a line in a
+limitations list.
+
+**It converts the disposal calculation from a bound into an answer.** Every
+other limitation in `PHYSICS.md` §10 makes the existing numbers less precise.
+This one makes a whole manoeuvre — the single-burn perigee drop that is what
+operators actually fly — impossible to evaluate at all. The delta-v for it is
+already computed and already correct (`perigee_lowering_dv`); what is missing
+is only the ability to propagate the resulting ellipse and attach a decay time
+to it. That is the gap between "this design needs at most 167 m/s" and "this
+design needs 140 m/s and reenters in 3.2 years".
+
+**The secular formulation should extend to it rather than being replaced.**
+`PHYSICS.md` §3.2 is already an orbit-averaged rate, not an instantaneous one,
+and the standard King-Hele treatment of drag on an eccentric orbit is of the
+same kind: average the drag over one revolution and get coupled secular rates
+in `a` and `e`, with the atmosphere sampled around the orbit rather than at a
+single altitude. The state becomes `[a, e, m]`, `rk4_step` is untouched, the
+adaptive controller extends by bounding fractional change in both `a` and `e`,
+and the circular case must fall out exactly at `e = 0` — which is a sharp
+regression test, since the entire V1 validation has to survive it unchanged.
+
+The real work is in the atmosphere, not the integrator: a per-revolution
+density average means sampling `rho` at several true anomalies per step
+instead of once, so `DensityGrid` and `ClimatologyDensity` both need a path
+that returns density along an orbit rather than at a point. That also happens
+to be the natural place to lift the single-point latitude sampling of
+`PHYSICS.md` §10.2, which is the other limitation that would become tractable
+at the same time.
+
+Not attempted in V2. Recorded here so the next scope has the argument already
+made and knows what the regression test is.
+
 ---
 
 ## V2.5 Regulatory thresholds are data, not physics
