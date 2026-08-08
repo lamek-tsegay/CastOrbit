@@ -105,6 +105,7 @@ computed, show that clearly rather than faking a result.
 │   ├── bounded.py          mass interval -> Bc -> decay -> verdict
 │   ├── spec.py             the prose/engine boundary; FORBIDDEN_FIELDS
 │   ├── prose.py            prose -> spec, and the constrained-JSON contract
+│   ├── studio.py           the whole pipeline as one payload, with provenance
 │   ├── montecarlo.py       batch runs, outcome taxonomy
 │   ├── sweeps.py           insertion altitude, ram area, safe-mode timing
 │   ├── export.py           JSON emission for the frontend
@@ -188,6 +189,7 @@ passed.
 | 8 — Geometry and projected area | ✅ PASS | `A·cos θ` within 0.67%; v1.5 knife-edge/broadside bracket 1.00–4.48 m² |
 | **9 — Mass closure, stage 1** | **❌ FAIL — 1 of 3 within 25%** | See below |
 | 10 — LLM front door | ✅ PASS | Ten varied descriptions produce schema-valid specs; eight underspecified inputs ask rather than invent; a rogue model response carrying `dry_mass_kg` is rejected |
+| 11 — Studio UI | ✅ PASS | Three panels; all four provenance kinds render distinctly; NOT_ASSESSABLE and AMBIGUOUS render as refusals with a note saying so; mass names its two neighbours; solar band carries SOLAR_BAND_CAVEAT verbatim. Verified in headless Chromium, zero console/page errors. Validation view untouched |
 
 **Gate 9 failed and stays failed.** Held-out dry mass: Sentinel-2 +0.2%,
 PROBA-V +37.0%, GOES-16 −34.8%.
