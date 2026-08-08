@@ -272,7 +272,7 @@ def _serialise(results: dict) -> dict:
     return {f"{cond}|{scale:.2f}": v.tolist() for (cond, scale), v in results.items()}
 
 
-def main(dt: float = DT_S) -> dict:
+def main(dt: float = DT_S, include_validation: bool = True) -> dict:
     sw = SpaceWeather.load(DATA / "SW-All.csv")
     OUT.mkdir(exist_ok=True)
     grids = _grids(sw)
@@ -284,6 +284,12 @@ def main(dt: float = DT_S) -> dict:
     s3 = sweep_safe_mode_timing(grids, dt=dt)
 
     from .export import ATMOSPHERE_MODEL, sim_version, write_json
+
+    validation = None
+    if include_validation:
+        from .validate import validation_export
+        print("  computing validation payload (Tests 1-4, Swarm C)...")
+        validation = validation_export(sw)
 
     mid_area, mid_cd = float(np.mean(RAM_AREA_RANGE)), float(np.mean(CD_RANGE))
     payload = {
@@ -319,6 +325,8 @@ def main(dt: float = DT_S) -> dict:
         "sweep_safe_mode_timing": {
             "x_hours": SAFE_MODE_EXIT_H, "survival": _serialise(s3)},
     }
+    if validation is not None:
+        payload["validation"] = validation
     write_json(OUT / "sweeps.json", payload)
     plot_from_payload(payload)
 

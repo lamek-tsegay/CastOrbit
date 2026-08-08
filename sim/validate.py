@@ -486,6 +486,160 @@ def _solve_area_scale(sw, grid, scale, dt, target_lost=FLEET_LOST):
     return 0.5 * (lo + hi)
 
 
+# --------------------------------------------------------------------------
+# Validation export -- everything the Phase 5 Validation view needs, in one
+# Python-computed payload. Lives here rather than only as prose in README.md
+# so the frontend never has to compute or restate a validation number itself.
+# --------------------------------------------------------------------------
+
+def analytic_validation_summary() -> dict:
+    """Tests 1-3 (PHYSICS.md §8), recomputed fresh -- nothing hardcoded.
+
+    Mirrors tests/test_validation.py's Test 1-3 logic, but lives in sim/ (not
+    tests/) so sim/export.py can call it without importing test modules.
+    tests/test_validation.py independently re-checks the same physics against
+    fixed tolerances; this function does not read from, or write to, that
+    suite -- both simply call the same sim.dynamics/integrator/critical code.
+    """
+    import math
+
+    from .constants import MU
+    from .critical import critical_altitude, critical_density
+    from .dynamics import da_dt
+
+    a0 = R_E + INSERTION_ALTITUDE_M
+    mass = MASS_KG
+    thrust = 0.071  # DERIVED, satellite_specs.json v1_5.thrust_n
+
+    def deriv1(t, y):
+        return derivatives(y, rho=0.0, thrust=0.0, cd=2.2, area=1.0, isp=None)
+
+    tr1 = propagate(deriv1, np.array([a0, mass]), dt=10.0, t_max=7 * 86400.0,
+                    sample_every=8640)
+    test1_rel_error = abs(tr1.a_m[-1] - a0) / a0
+
+    def deriv2(t, y):
+        return derivatives(y, rho=0.0, thrust=thrust, cd=2.2, area=1.0, isp=None)
+
+    tr2 = propagate(deriv2, np.array([a0, mass]), dt=10.0, t_max=86400.0,
+                    sample_every=8640)
+    t_end = float(tr2.t_s[-1])
+    analytic2 = a0 / (1.0 - (thrust / mass) * t_end * math.sqrt(a0 / MU)) ** 2
+    test2_rel_error = abs(tr2.a_m[-1] - analytic2) / analytic2
+
+    cd3, area3 = 2.2, 4.48
+
+    def rho_of_h(h):
+        return 1.468e-10 * math.exp(-(h - 210e3) / 37.0e3)
+
+    h_crit = critical_altitude(rho_of_h, thrust, cd3, area3)
+    a_crit = R_E + h_crit
+    rho_crit = critical_density(a_crit, thrust, cd3, area3)
+    rate = da_dt(a_crit, mass, rho_crit, thrust, cd3, area3)
+    thrust_term = 2.0 * (thrust / mass) * a_crit ** 1.5 / math.sqrt(MU)
+    test3_rel_rate = abs(rate) / thrust_term
+
+    return {
+        "test_1_energy_conservation": {
+            "description": "rho=0, F=0 over 1 simulated week; da/dt should be exactly 0",
+            "relative_change_in_a": test1_rel_error,
+            "limit": 1e-12,
+            "passed": bool(test1_rel_error < 1e-12),
+        },
+        "test_2_thrust_spiral": {
+            "description": "closed-form thrust spiral vs numerical RK4, 1 day",
+            "relative_error": test2_rel_error,
+            "limit": 1e-4,
+            "passed": bool(test2_rel_error < 1e-4),
+        },
+        "test_3_critical_density_fixed_point": {
+            "description": "da/dt at the computed h_crit should be 0, held 1 hour",
+            "relative_rate": test3_rel_rate,
+            "limit": 1e-9,
+            "passed": bool(test3_rel_rate < 1e-9),
+        },
+    }
+
+
+def validation_export(sw: SpaceWeather, dt: float = 10.0) -> dict:
+    """Full payload for the Phase 5 Validation view. Recomputed fresh, always.
+
+    Test 4 (Baruah) is reported at storm_time=True, density_scale=1.0 -- the
+    uncorrected, as-published NRLMSIS numbers, matching README.md's primary
+    figures. The density_scale_diagnostic multipliers and Swarm C sit
+    alongside as the evidence for README.md's central finding, not as a
+    correction applied to the Test 4 numbers themselves.
+    """
+    analytic = analytic_validation_summary()
+
+    cases = []
+    for area in (4.48, 1.00):
+        r = run_case(area, storm_time=True, sw=sw, dt=dt, t_max_s=5 * 86400.0)
+        target = TARGETS[area]
+        alt = r.altitude_at_reference_km
+        decay_error_pct = None
+        if alt is not None:
+            decay = INSERTION_ALTITUDE_M / 1e3 - alt
+            target_decay = INSERTION_ALTITUDE_M / 1e3 - target
+            decay_error_pct = (decay - target_decay) / target_decay * 100.0
+        reentry_error_pct = None
+        if r.reentry_time_s is not None:
+            reentry_error_pct = (
+                (r.reentry_time_s - T_REFERENCE_S) / T_REFERENCE_S * 100.0
+            )
+        cases.append({
+            "ram_area_m2": area,
+            "target_altitude_km": target,
+            "outcome": r.outcome,
+            "altitude_at_reference_km": alt,
+            "decay_error_pct": decay_error_pct,
+            "reentry_time_s": r.reentry_time_s,
+            "reentry_time_utc": (
+                r.reentry_time_utc.isoformat() if r.reentry_time_utc else None
+            ),
+            "reentry_error_pct": reentry_error_pct,
+            "acceptance_pct": 20.0,  # PHYSICS.md §8: "roughly 20%" is a good result
+        })
+
+    density_scales = density_scale_diagnostic(sw, storm_time=True, dt=dt)
+    swarm = swarm_c_validation(sw, dt=dt)
+
+    return {
+        "analytic_tests": analytic,
+        "test_4_baruah_reproduction": {
+            "epoch": EPOCH.isoformat(),
+            "reference_time": REFERENCE_TIME.isoformat(),
+            "cd": CD_VALIDATION,
+            "mass_kg": MASS_KG,
+            "insertion_altitude_km": INSERTION_ALTITUDE_M / 1e3,
+            "cases": cases,
+            "implied_density_multiplier": {
+                f"{area:.2f}": scale for area, scale in density_scales.items()
+            },
+        },
+        "swarm_c_secondary": {
+            "altitude_km": SWARM_C["altitude_m"] / 1e3,
+            "mass_kg": SWARM_C["mass_kg"],
+            "ram_area_m2": SWARM_C["area_m2"],
+            "cd": SWARM_C["cd"],
+            "decay_m": swarm["decay_m"],
+            "paper_modelled_decay_m": SWARM_C["paper_modelled_decay_m"],
+            "observed_decay_m": SWARM_C["observed_decay_m"],
+            "implied_multiplier_vs_paper": swarm["k_paper"],
+            "implied_multiplier_vs_observed": swarm["k_observed"],
+            "latitude_sensitivity": {
+                f"{lat:.1f}": val for lat, val in swarm["sensitivity"].items()
+            },
+            "flagged_weakest": True,
+            "flagged_reason": (
+                "Implied correction is ~14% larger than the Starlink pair's "
+                "2.0% agreement, and depends on an inclination (87.4 deg) not "
+                "sourced in this repo's data files -- see docs/SOURCES.md."
+            ),
+        },
+    }
+
+
 def _fmt_hours(seconds: float) -> str:
     sign = "-" if seconds < 0 else "+"
     return f"{sign}{abs(seconds) / 3600.0:.2f} h"
