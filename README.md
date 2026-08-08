@@ -295,6 +295,14 @@ npm run dev       # http://localhost:5173, reads out/batch.json and out/sweeps.j
 Four views (globe, altitude, sweeps, validation) over the two JSON files
 above; no physics runs in the browser. See [`web/README.md`](web/README.md).
 
+#### Interface
+
+<img src="out/screenshots/globe.png" alt="Globe view: 49 satellites coloured by outcome, both Cd runs shown, click for parameters" width="32%"> <img src="out/screenshots/sweeps.png" alt="Sweeps view: survival fraction vs ram area, storm vs quiet, density band shaded" width="32%"> <img src="out/screenshots/validation.png" alt="Validation view: the Baruah comparison table" width="32%">
+
+*Globe, sweeps, and validation views. Every number on screen comes from
+`out/batch.json` or `out/sweeps.json` — see the hard rules in
+[`web/README.md`](web/README.md).*
+
 Project structure, build order, and the JSON export contract:
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Full equation set and the four
 validation test specifications: [`PHYSICS.md`](PHYSICS.md). Every external
