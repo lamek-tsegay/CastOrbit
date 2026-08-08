@@ -1,0 +1,60 @@
+{
+  "_comment": [
+    "Post-mission disposal rules, with provenance. V2_BRIEF.md §3 states the",
+    "five-year rule but explicitly says not to treat that paragraph as",
+    "authoritative, so each rule here was checked against its own source and",
+    "the wording that actually matters is recorded verbatim.",
+    "",
+    "Two corrections to the brief's summary came out of that check:",
+    "  1. The five-year clock starts at END OF MISSION, not at launch. A",
+    "     satellite with a 7-year design life at 705 km has 12 years from",
+    "     launch, not 5.",
+    "  2. The FCC rule is scoped to disposal by UNCONTROLLED atmospheric",
+    "     re-entry from below 2000 km. Controlled de-orbit and re-orbit to a",
+    "     disposal orbit are different paths with different requirements.",
+    "",
+    "Nothing here is a physics constant. These are legal thresholds that",
+    "change; they live in data/ so a rule change is a data edit, not a code",
+    "edit, and so the compliance verdict can name the rule it applied."
+  ],
+  "rules": [
+    {
+      "id": "fcc_5yr",
+      "label": "FCC 5-year rule",
+      "citation": "47 CFR § 25.283(e)",
+      "quote": "For space stations ending their mission in or passing through the low-Earth orbit region below 2000 km altitude and planning disposal through uncontrolled atmospheric re-entry, disposal must be completed as soon as practicable following end of mission, and no later than five years after the end of the mission.",
+      "window_years": 5.0,
+      "clock_starts": "end_of_mission",
+      "applies_below_altitude_km": 2000.0,
+      "disposal_method": "uncontrolled_atmospheric_reentry",
+      "adopted": "2022-09-29",
+      "effective": "2024-09-29",
+      "effective_note": "Binding on applications filed on or after this date; two-year transition from adoption.",
+      "jurisdiction": "United States (FCC-licensed systems)",
+      "source": "https://www.law.cornell.edu/cfr/text/47/25.283",
+      "source_type": "codified regulation",
+      "verified": "2026-08-07",
+      "confidence": "high"
+    },
+    {
+      "id": "iadc_25yr",
+      "label": "IADC 25-year guideline",
+      "citation": "IADC Space Debris Mitigation Guidelines; ISO 24113",
+      "quote": "Long-standing international guideline that objects passing through LEO be removed from orbit within 25 years of end of mission.",
+      "window_years": 25.0,
+      "clock_starts": "end_of_mission",
+      "applies_below_altitude_km": 2000.0,
+      "disposal_method": "uncontrolled_atmospheric_reentry",
+      "adopted": "2002",
+      "effective": null,
+      "effective_note": "Non-binding guideline. Superseded in US practice by the FCC rule above, still the reference elsewhere and the baseline most published designs were sized against.",
+      "jurisdiction": "international (voluntary)",
+      "source": "https://www.iadc-home.org/documents_public/view/id/172",
+      "source_type": "guideline",
+      "verified": "2026-08-07",
+      "confidence": "medium",
+      "confidence_note": "Widely reported and uncontroversial, but the 25-year figure is quoted here from secondary summaries rather than read out of the IADC document itself."
+    }
+  ],
+  "default_rule": "fcc_5yr"
+}
