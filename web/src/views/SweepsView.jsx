@@ -46,7 +46,11 @@ export default function SweepsView({ sweeps }) {
         <span className="view-title">Sweeps</span>
         <span className="view-note">
           Shaded band spans density scale 1.00 (NRLMSIS as reported) to 1.19
-          (README.md's central finding). Solid = 1.00, dashed = 1.19.
+          (README.md's central finding). Solid = 1.00, dashed = 1.19.{" "}
+          <strong className="band-caveat">Bounds, not scenarios</strong> — the
+          two edges are the same systematic bias assumed absent and assumed
+          present, so the truth lies between them. Neither edge is a forecast,
+          and neither is a best or worst case.
         </span>
       </div>
 
@@ -171,13 +175,23 @@ function SafeModeSweep({ sweeps }) {
   );
 }
 
+// Every chart in this view carries a shaded band, so the legend is where the
+// "bounds, not scenarios" reading belongs -- it sits next to the swatch rather
+// than only in the header, and follows the band into every tab.
 function SweepLegend() {
   return (
-    <div className="legend">
-      <span className="legend-item"><span className="legend-swatch" style={{ background: STORM_COLOR }} /> Storm</span>
-      <span className="legend-item"><span className="legend-swatch" style={{ background: QUIET_COLOR }} /> Quiet</span>
-      <span className="legend-item">— solid: density ×1.00</span>
-      <span className="legend-item">- - dashed: density ×1.19</span>
-    </div>
+    <>
+      <div className="legend">
+        <span className="legend-item"><span className="legend-swatch" style={{ background: STORM_COLOR }} /> Storm</span>
+        <span className="legend-item"><span className="legend-swatch" style={{ background: QUIET_COLOR }} /> Quiet</span>
+        <span className="legend-item">— solid: density ×1.00</span>
+        <span className="legend-item">- - dashed: density ×1.19</span>
+      </div>
+      <p className="band-caveat-note">
+        Shading shows <strong>bounds, not scenarios.</strong> The band's edges
+        are the same density assumption applied and withheld — the answer lies
+        between them. An edge is not a forecast.
+      </p>
+    </>
   );
 }

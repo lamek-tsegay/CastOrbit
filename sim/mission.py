@@ -299,19 +299,63 @@ def fly(
     )
 
 
+SOLAR_BAND_CAVEAT = (
+    "Bounds, not scenarios. Each level holds solar activity fixed at a "
+    "percentile of the 1957-onward observed record for the whole run. No real "
+    "25-year period sits at one level -- the solar cycle is ~11 years, so a "
+    "sustained solar maximum is physically impossible, not merely unlikely. "
+    "Read low/high as bounds the true answer lies between, and never as "
+    "best-case and worst-case futures."
+)
+
+
+@dataclass
+class SolarBandResult:
+    """Results at every solar activity level, with the caveat attached.
+
+    This exists as a type rather than a plain dict so that
+    `SOLAR_BAND_CAVEAT` cannot be separated from the numbers on the way to a
+    UI. Anything rendering the band gets `caveat` in the same payload; there
+    is no accessor that returns the spread without it.
+    """
+
+    levels: dict[str, LifecycleResult]
+    caveat: str = SOLAR_BAND_CAVEAT
+
+    def __getitem__(self, level: str) -> LifecycleResult:
+        return self.levels[level]
+
+    def __iter__(self):
+        return iter(self.levels)
+
+    def items(self):
+        return self.levels.items()
+
+    def as_dict(self) -> dict:
+        return {
+            "caveat": self.caveat,
+            "levels": {k: v.as_dict() for k, v in self.levels.items()},
+        }
+
+
 def fly_solar_band(
     mission: Mission,
     sw: SpaceWeather,
     **kwargs,
-) -> dict[str, LifecycleResult]:
+) -> SolarBandResult:
     """Fly the same mission at every solar activity level.
 
     "Uncertain values get swept, not chosen" (V2_BRIEF.md §6). Future solar
     activity is the largest uncertainty in any multi-year run, so the intended
     way to use `fly` for a long mission is through this, and to read the
     spread as the answer.
+
+    Returns a `SolarBandResult`, which carries `SOLAR_BAND_CAVEAT` alongside
+    the numbers -- see that class for why it is a type and not a dict.
     """
-    return {
-        level: fly(mission, sw, solar_activity=level, **kwargs)
-        for level in SOLAR_ACTIVITY_PERCENTILES
-    }
+    return SolarBandResult(
+        levels={
+            level: fly(mission, sw, solar_activity=level, **kwargs)
+            for level in SOLAR_ACTIVITY_PERCENTILES
+        }
+    )

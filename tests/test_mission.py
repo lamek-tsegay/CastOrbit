@@ -211,6 +211,12 @@ def test_solar_band_sweeps_rather_than_choosing(sw):
     band = fly_solar_band(a_mission(), sw)
     assert set(band) == {"low", "mean", "high"}
 
+    # The caveat must be inseparable from the numbers -- there is no accessor
+    # that hands a UI the spread without it. See SOLAR_BAND_CAVEAT.
+    assert "Bounds, not scenarios" in band.caveat
+    assert band.as_dict()["caveat"] == band.caveat
+    assert set(band.as_dict()["levels"]) == {"low", "mean", "high"}
+
     targets = {k: v.compliance.disposal_altitude_km for k, v in band.items()}
     assert targets["low"] < targets["mean"] < targets["high"], (
         "a denser thermosphere should let disposal stop higher up"

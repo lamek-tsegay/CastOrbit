@@ -362,3 +362,28 @@
   grid-template-columns: 1fr;
   gap: 20px;
 }
+
+/* ---------- band caveat ---------- */
+
+/* "Bounds, not scenarios." Shaded bands read as best-case/worst-case unless
+   told otherwise, and that reading is wrong in both places this app shows one:
+   the density band's edges are one systematic bias applied and withheld, and
+   the V2 solar band's edges are activity levels no real multi-year period
+   sustains. See sim/mission.py SOLAR_BAND_CAVEAT. */
+
+.band-caveat {
+  color: var(--text-bright);
+  font-weight: 600;
+}
+
+.band-caveat-note {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-dim);
+  max-width: 78ch;
+}
+
+.band-caveat-note strong {
+  color: var(--text);
+}
