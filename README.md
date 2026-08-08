@@ -269,19 +269,33 @@ Full list with sourcing: [PHYSICS.md §10](PHYSICS.md#10-known-limitations).
 ```bash
 uv venv --python python3.12 .venv
 uv pip install --python .venv/bin/python pymsis==0.12.0 numpy scipy pytest matplotlib
-.venv/bin/python -m pytest -q                 # 39 tests
+.venv/bin/python -m pytest -q                 # 66 tests
 
 .venv/bin/python -m sim.validate              # Baruah + Swarm C reproduction
-.venv/bin/python -m sim.sweeps                # the three §9 sweeps
+.venv/bin/python -m sim.sweeps                # the three §9 sweeps + validation payload
+.venv/bin/python -m sim.export                # out/batch.json, the fleet reproduction
 ```
 
-Both write figures and JSON to `out/` (gitignored except for the PNGs embedded
-above, which are committed so they render on GitHub without a build step).
+These write figures and JSON to `out/` (gitignored except for the PNGs
+embedded above, which are committed so they render on GitHub without a build
+step).
 
 `pymsis` is pinned to 0.12.0 — the version the [PHYSICS.md §4.1](PHYSICS.md#41-verified-sanity-values)
 reference table was generated against. System Python on the reference machine
 was 3.9, too old for current `pymsis` wheels; the venv above targets 3.12.
 
+### Frontend
+
+```bash
+cd web
+npm install
+npm run dev       # http://localhost:5173, reads out/batch.json and out/sweeps.json
+```
+
+Four views (globe, altitude, sweeps, validation) over the two JSON files
+above; no physics runs in the browser. See [`web/README.md`](web/README.md).
+
 Project structure, build order, and the JSON export contract:
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Full equation set and the four
-validation test specifications: [`PHYSICS.md`](PHYSICS.md).
+validation test specifications: [`PHYSICS.md`](PHYSICS.md). Every external
+source cited: [`docs/SOURCES.md`](docs/SOURCES.md).
