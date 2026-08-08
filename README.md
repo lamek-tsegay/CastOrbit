@@ -121,16 +121,48 @@ project's standard free-molecular `Cd = 2.2`:
 | Geometry + free-molecular convention | 2.2 | 0.405 m² | **0.89 m²** |
 
 Two different splits of a product that is not separately observable, landing
-**11% apart** — reached from a ruler and a drag convention rather than from an
-altitude history. The geometry-derived range also reproduces the *secondary
-source* knife-edge figures recorded in the spec file (0.3–0.7 m²) rather than
-Baruah's 1.00 m², which is a stated lower bound on a swept range, not a
-measurement.
+11% apart — reached from a ruler and a drag convention rather than from an
+altitude history.
 
-Four methods, four different kinds of evidence, one number. This is what
-V2 was for: pinning `A` from geometry constrains one of the three inseparable
-factors by construction instead of by assumption
-([`docs/V2_BRIEF.md`](docs/V2_BRIEF.md) §2).
+**How much is that 11% worth? Less than it looks.** A percentage gap means
+nothing without the range it sits in, so here is the range. In the knife-edge
+attitude, sweeping the repo's own bounds — chassis dimensions across both
+sourced pairs, `Cd` across the free-molecular convention's 2.0–2.4 — gives
+
+```
+Cd * A  ∈  2.0-2.4 × [0.27, 0.61]  =  [0.54, 1.46] m²      (spans 2.7×)
+```
+
+Baruah's 1.00 m² sits at the 62nd percentile of that range: comfortably
+interior, nowhere near an edge. Drawing a value log-uniformly from it lands
+within ±11% of 1.00 about **22% of the time** — roughly one chance in five. On
+the wider pre-geometry prior (spec-file area 0.3–1.0 m², spanning 4.0×) it is
+one in six.
+
+So the tightness of the agreement is *not* the evidence. Quoting "11% apart"
+while the geometry route's own uncertainty spans 2.7× compares two nominal
+points and hides the spread behind both. The honest version of this diagnostic
+is weaker and differently shaped:
+
+- **Containment, not coincidence.** The geometry-derived range [0.54, 1.46] m²
+  contains Baruah's 1.00 m². Had it excluded it, that would have been a real
+  problem for one of the two routes. It doesn't.
+- **Independence is what it adds.** This is the only one of the four that never
+  integrates anything — no atmosphere model, no integrator, no decay curve. The
+  first three could all be wrong together if NRLMSIS or the propagation were
+  systematically off; this one could not fail the same way. A fourth
+  *correlated* line of evidence would be worth much less than a weak
+  *uncorrelated* one.
+- It also reproduces the *secondary-source* knife-edge figures in the spec file
+  (0.3–0.7 m²) rather than Baruah's 1.00 m² — which is a stated lower bound on
+  a swept range, not a measurement.
+
+Four methods, four kinds of evidence, one number — but read the fourth as
+independent corroboration of the right order of magnitude, not as a precise
+confirmation. This is still what V2 was for: pinning `A` from geometry
+constrains one of the three inseparable factors by construction instead of by
+assumption ([`docs/V2_BRIEF.md`](docs/V2_BRIEF.md) §2), and it narrows the
+plausible range from 4.0× to 2.7× even where it cannot settle the value.
 
 ### What the published 4.48 m² actually is
 
