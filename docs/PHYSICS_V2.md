@@ -407,3 +407,67 @@ do more than any amount of additional table entries.
 distribution whose spread is 3.6×; the table happened to bracket it tightly
 with two spacecraft of the same design regime. The honest summary of Stage 1
 is "±35% at the extremes, better where the table is dense", not "±25%".
+
+### The response: bound Stage 1, do not extend it
+
+Gate 9 is recorded as FAIL. Rather than build the Stage 2 MERs, `sim/bounded.py`
+puts an honest boundary around the method that exists.
+
+**Every estimate now carries an interval, and may decline to carry a point.**
+The interval is the observed kg/W band among comparable spacecraft, applied to
+the requested power. A point estimate is withheld when either:
+
+- the bracketing spacecraft are more than **4×** apart in power — they are in
+  different design regimes and the power law between them is not local; or
+- kg/W among comparable spacecraft varies by more than **2×** — at that spread
+  power does not determine mass, so no interpolation on power can resolve it.
+
+**The load-bearing detail is the minimum sample size.** Local scatter is only
+used when at least 4 comparable spacecraft sit within 4× of the requested
+power; otherwise the class-wide spread is used. This is not a formality.
+PROBA-V's local window holds 3 spacecraft whose kg/W agree to within 1.17×.
+Taken at face value that would have produced a *tight* interval — and it would
+have excluded the true mass by a factor of two. A confident-looking wrong
+interval is worse than a wrong point estimate, because it also claims to know
+its own error.
+
+Re-scored under the bound, with the table unchanged:
+
+| Spacecraft | Actual | Result | Range | Contains actual |
+|---|---|---|---|---|
+| PROBA-V | 140 kg | refused | 83–301 kg | ✅ |
+| Sentinel-2 | 1016 kg | 1018 kg (+0.2%) | 769–1424 kg | ✅ |
+| GOES-16 | 2857 kg | refused | 1040–3758 kg | ✅ |
+
+All three intervals contain the truth, and the two that missed the 25% bar are
+exactly the two now refused. The gate is still failed — one of three — but the
+method no longer produces numbers it cannot stand behind.
+
+### Propagating the interval
+
+```
+mass interval  ->  ballistic coefficient  ->  decay time  ->  compliance
+   [lo, hi]         Bc = m/(Cd*A)            propagated       verdict at
+                    monotone increasing      at both ends     both ends
+```
+
+Every step is monotone in mass — heavier means a higher ballistic coefficient,
+which means slower decay, which means compliance is harder — so evaluating the
+two endpoints bounds every interior value exactly. There is no need to sample
+inside the interval and no risk of a worse case hiding in the middle. The
+low-mass end is the optimistic case, the high-mass end the pessimistic one.
+
+**Two outcomes are refusals rather than verdicts**, and both report
+`renderable = False` so a UI has one boolean to check:
+
+- `NOT_ASSESSABLE` — the mass did not resolve. No verdict is computed at all;
+  not a hedged one, not a most-likely one. The mass model's reasons are passed
+  through verbatim.
+- `AMBIGUOUS` — the mass resolved, but compliance flips between the endpoints.
+  At 420 km a 1700 W earth-observation design complies naturally at the light
+  end of its own mass uncertainty and needs a disposal burn at the heavy end.
+  The mass interval decides the answer, not the design, so there is no answer.
+
+`Cd` and ram area are treated as exact in this propagation. They are not —
+Phase 8 gives `A` a range of its own — but composing both uncertainties would
+obscure which one dominates, and for now mass does.

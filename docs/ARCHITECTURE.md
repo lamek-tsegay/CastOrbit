@@ -164,6 +164,46 @@ as work remaining. **Phases 7–12 are the current plan and live in
 [`V2_BRIEF.md`](V2_BRIEF.md) §7**, which is authoritative for them; they are
 not duplicated here.
 
+### Gate history
+
+Outcomes as measured, including the one that failed. A gate that failed and
+was recorded is worth more than a gate that was quietly relaxed until it
+passed.
+
+| Gate | Outcome | Evidence |
+|---|---|---|
+| 1 — Physics core | ✅ PASS | Tests 1–3 pass; `PHYSICS.md` §4.1 table reproduced |
+| 2 — Baruah reproduction | ✅ PASS | +18.2% / −18.5%, inside the paper's own 20% band |
+| 3 — Batches and sweeps | ✅ PASS | Survival curves, quiet and storm |
+| 4 — JSON export | ✅ PASS | Read-back reproduces the Phase 3 plots from disk |
+| 5 — Frontend | ✅ PASS | Four views, every number from `out/*.json` |
+| 6 — Writeup | ✅ PASS | README with equations, validation table, limitations |
+| 7 — Generalise the engine | ✅ PASS | Baruah within 0.0012% of V1 fixed step; 705 km × 25 yr in 0.28 s; disposal Δv matches hand calculation |
+| 8 — Geometry and projected area | ✅ PASS | `A·cos θ` within 0.67%; v1.5 knife-edge/broadside bracket 1.00–4.48 m² |
+| **9 — Mass closure, stage 1** | **❌ FAIL — 1 of 3 within 25%** | See below |
+
+**Gate 9 failed and stays failed.** Held-out dry mass: Sentinel-2 +0.2%,
+PROBA-V +37.0%, GOES-16 −34.8%.
+
+The reason is PROBA-V, and it is not a table-density problem. **PROBA-V
+(320 W, 140 kg) and Deimos-2 (330 W, 310 kg) are real spacecraft at
+essentially identical power whose masses differ by 2.2×.** Across the
+earth-observation class, kg/W spans 3.6×. No predictor taking power alone can
+separate those two spacecraft, so the 25% bar is unreachable at the small end
+by any interpolation scheme, at any table density. Adding rows cannot fix it;
+only a second predictor that distinguishes design regimes can, which is
+`V2_BRIEF.md` §5's stage 2.
+
+The response was to **bound stage 1 rather than extend it** (`sim/bounded.py`).
+The mass model now withholds a point estimate where the table cannot support
+one and returns a range instead; all three held-out intervals contain the true
+mass, and the two that missed the bar are exactly the two now refused. The
+interval propagates through ballistic coefficient, decay time and Δv, and a
+compliance verdict resting on an unresolvable mass returns `NOT_ASSESSABLE`
+with `renderable = False`.
+
+The table was not tuned. Full detail: [`PHYSICS_V2.md`](PHYSICS_V2.md) §V2.7.
+
 ### Phase 1 — Physics core ✅
 
 Implement `constants`, `dynamics`, `integrator`, `atmosphere`, `critical`.
