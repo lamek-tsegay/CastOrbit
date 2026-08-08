@@ -66,9 +66,12 @@ export default function GlobeView({ batch }) {
       <div className="view-header">
         <span className="view-title">Globe</span>
         <span className="view-note">
-          Position is display geometry (mean motion from each satellite's own
-          simulated altitude, plus an illustrative orbital-plane spread) --
-          not tracked physics. See sim/groundtrack.py.
+          Ground-track position (latitude/longitude) is illustrative display
+          geometry only -- computed from each satellite's own simulated
+          altitude plus an illustrative orbital-plane spread, not measured or
+          tracked. Lat/lon modelling is outside the validated physics (see
+          PHYSICS.md §1 and sim/groundtrack.py). Altitude, outcome, and cause
+          of loss are real simulation output.
         </span>
       </div>
 
