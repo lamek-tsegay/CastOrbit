@@ -1,23 +1,47 @@
 # ARCHITECTURE.md — CastOrbit
 
 Standing brief for this repository. Read this first, every session.
-Read `PHYSICS.md` before writing any simulation code.
+Read `docs/V2_BRIEF.md` **before** this file — it defines the current scope and
+wins wherever the two disagree about *what the project is*.
+Read `PHYSICS.md` before writing any simulation code; it wins wherever
+anything disagrees about *how the physics works*.
 
 ---
 
 ## 1. What this is
 
-A physics-grounded simulator of Starlink satellite survival in very low Earth
-orbit during geomagnetic storms.
+A satellite design tool built on a validated orbital-decay engine.
 
 **The one-line pitch:**
-> Validate against the February 2022 loss, where the answer is published, then
-> point the validated model at the storms we care about now.
+> Describe a satellite and a mission. CastOrbit sizes it, builds it, flies it,
+> and tells you whether it complies.
 
-It is **not** a satellite tracker, a 3D visualisation of public TLE data, or a
-generative design tool. Those exist and are unimpressive. The value here is that
-every number on screen was computed from an equation and checked against a
-peer-reviewed result.
+**The physics does not change; the scope of what it is pointed at does.** The
+engine in `sim/` — hand-written RK4, NRLMSIS atmosphere, the `PHYSICS.md` §3.2
+equation — is the same engine that reproduced the February 2022 Starlink loss.
+V2 generalises what it is aimed at: arbitrary altitude, inclination, epoch and
+target, with ram area *derived from geometry* rather than assumed.
+
+That last point is the substance of V2, not a feature. The README's central
+finding is that `rho`, `Cd` and `A` are inseparable from a decay curve — only
+the product is observable. Pinning `A` from geometry the user specified
+constrains one of the three by construction rather than by assumption
+(`V2_BRIEF.md` §2).
+
+### V1 is the credibility, not legacy code
+
+V1 was a reconstruction of one event: did the February 2022 batch survive?
+That is complete, validated, and tagged `v1.0-validated`. **The Baruah
+reproduction is now a regression test.** It stays in the test suite, it stays
+in the README, and any change that moves it outside its acceptance band stops
+work until understood — that is a bug, not a scope change.
+
+It is still **not** a satellite tracker or a 3D visualisation of public TLE
+data. It is now deliberately a design tool, which V1 explicitly was not — but
+a design tool whose numbers come from an engine that was checked against a
+peer-reviewed result, which is the distinction that matters. Above ~550 km
+"will it decay?" stops being the interesting question and the compliance
+question replaces it (`V2_BRIEF.md` §3).
 
 ### Success criteria
 
@@ -26,10 +50,14 @@ This project succeeds if a skeptical aerospace engineer can:
 1. Ask "did you write the integrator?" — and the answer is yes, with tests
 2. Ask "how accurate is it?" — and get a number, not a shrug
 3. Ask "what happens if the drag area is wrong?" — and see it swept
-4. Find the limitations section before they have to point one out
+4. Ask "where did this generated design's mass come from?" — and get a real
+   spacecraft it was interpolated from, not a plausible number
+5. Find the limitations section before they have to point one out
 
 It fails if it is visually impressive and numerically unverifiable. **When
-trading polish against verifiability, choose verifiability.**
+trading polish against verifiability, choose verifiability.** The specific
+failure mode V2 must avoid: a studio UI over plausible numbers with no engine
+underneath (`V2_BRIEF.md` §8).
 
 ---
 
@@ -122,14 +150,20 @@ is a build failure waiting to happen on day three.
 
 Each phase has a gate. **Do not start the next phase until the gate passes.**
 
-### Phase 1 — Physics core
+**Phases 1–6 below are complete** — V1, tagged `v1.0-validated`. They are kept
+here as the record of what was built and what each gate actually required, not
+as work remaining. **Phases 7–12 are the current plan and live in
+[`V2_BRIEF.md`](V2_BRIEF.md) §7**, which is authoritative for them; they are
+not duplicated here.
+
+### Phase 1 — Physics core ✅
 
 Implement `constants`, `dynamics`, `integrator`, `atmosphere`, `critical`.
 
 **Gate:** Validation tests 1, 2, and 3 from `PHYSICS.md` §8 pass. The critical
 density table in `PHYSICS.md` §4.1 is reproduced exactly.
 
-### Phase 2 — Validation
+### Phase 2 — Validation ✅
 
 Implement the Baruah et al. reproduction (test 4). Run at `Cd = 1.0`.
 
@@ -141,27 +175,27 @@ If they disagree badly, **investigate before proceeding** — but do not adjust
 parameters to force agreement. A documented 30% discrepancy with a hypothesis
 about its cause is a stronger result than a suspicious exact match.
 
-### Phase 3 — Batches and sweeps
+### Phase 3 — Batches and sweeps ✅
 
 Monte Carlo over 49 satellites. The three sweeps in `PHYSICS.md` §9.
 
 **Gate:** Survival-fraction-versus-insertion-altitude curves exist for both quiet
 and storm conditions, as matplotlib plots. No frontend yet.
 
-### Phase 4 — JSON export
+### Phase 4 — JSON export ✅
 
 Define and emit the run format. See §6.
 
 **Gate:** A JSON file exists in `out/` that fully describes a batch, and a Python
 script can read it back and reproduce the plots from Phase 3.
 
-### Phase 5 — Frontend
+### Phase 5 — Frontend ✅
 
 React app. Globe, altitude chart, sweep chart, validation view.
 
 **Gate:** It loads the JSON and displays it. Nothing is hardcoded.
 
-### Phase 6 — Writeup
+### Phase 6 — Writeup ✅
 
 `README.md` with the equations, the validation table, and the limitations list
 from `PHYSICS.md` §10.
