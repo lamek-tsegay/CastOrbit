@@ -140,6 +140,39 @@ class SpaceWeather:
             raise ValueError(f"no centred 81-day F10.7 for {when}")
         return value
 
+    def f107_percentile(self, p: float) -> float:
+        """Percentile of the *observed* daily F10.7 record.
+
+        The basis for the long-horizon solar activity levels in
+        `SOLAR_ACTIVITY_PERCENTILES`. Predictions (PRD/INT rows) are excluded:
+        the point is to characterise how active the Sun actually gets, and
+        including forecasts would let a forecasting convention leak into it.
+
+        The file starts in 1957, so this spans roughly six solar cycles.
+        """
+        values = np.array(
+            [d.f107_obs for d in self._days.values()
+             if d.is_observed and d.f107_obs is not None],
+            dtype=float,
+        )
+        if values.size == 0:
+            raise ValueError("no observed F10.7 values in the file")
+        return float(np.percentile(values, p))
+
+    def ap_percentile(self, p: float) -> float:
+        """Percentile of the observed daily Ap record. See `f107_percentile`."""
+        values = np.array(
+            [d.ap_avg for d in self._days.values() if d.is_observed], dtype=float
+        )
+        if values.size == 0:
+            raise ValueError("no observed Ap values in the file")
+        return float(np.percentile(values, p))
+
+    @property
+    def last_day(self) -> date:
+        """Last day with usable indices -- where forecasting has to take over."""
+        return self._last
+
     def _slot_index(self, when: datetime) -> int:
         """Global index into the flat 3-hourly ap series."""
         d = when.date()
@@ -251,6 +284,214 @@ def density(
         [sw.ap_array(d) for d in dates],
         storm_time=storm_time,
     )
+
+
+# Percentiles of the observed F10.7 record used to define the three
+# long-horizon solar activity levels. Not density values and not tuned -- they
+# are read out of SW-All.csv at runtime by `ClimatologyDensity.for_level`, so
+# extending the file moves them. p05/p50/p95 rather than min/median/max because
+# the extremes of a 69-year record are single-day spikes, not levels a
+# multi-year decay ever sits at.
+SOLAR_ACTIVITY_PERCENTILES = {"low": 5.0, "mean": 50.0, "high": 95.0}
+
+
+class ClimatologyDensity:
+    """Time-independent density profile for multi-year propagation.
+
+    **Why this exists.** `DensityGrid` is the right model for the February 2022
+    reconstruction: a real epoch, real 3-hourly indices, a five-day window. It
+    cannot serve a 25-year compliance run for two separate reasons, and only
+    the first is about cost:
+
+      1. It builds one interpolator per 3 h block. Twenty-five years is ~73,000
+         blocks and as many pymsis calls.
+      2. **There is no space weather data to build it from.** SW-All.csv ends
+         a few weeks out (`SpaceWeather.last_day`). A disposal run reaching
+         2051 spends ~99% of its time past the end of the file.
+
+    The second is the real one, and no amount of engineering fixes it: solar
+    cycle 27 is not predictable. So this class does not pretend to forecast.
+    It holds the indices *constant* at a stated activity level and reports a
+    density profile, leaving the caller to run the levels separately and quote
+    a band -- "uncertain values get swept, not chosen" (V2_BRIEF.md §6).
+
+    **What is averaged out, and why that is legitimate.** The profile is the
+    mean over twelve months and eight longitudes at fixed indices, which
+    removes the seasonal and local-time cycles. Averaging *density* is the
+    correct thing to do here rather than a convenience: `da/dt` is linear in
+    rho (PHYSICS.md §3.2), so the mean density gives the mean secular rate,
+    exactly, as long as `a` does not move much within an averaging period. Over
+    a year at 700 km it does not.
+
+    That linearity argument does **not** extend to the solar cycle, which is
+    why the cycle is swept rather than averaged. Decay time is strongly
+    non-linear in the *duration* spent at high density, and a satellite that
+    survives solar max is in a different regime from one that does not. A
+    single run at mean F10.7 would be a real answer to the wrong question.
+    """
+
+    _AVERAGING_MONTHS = 12
+    _AVERAGING_LONGITUDES = 8
+
+    def __init__(
+        self,
+        f107: float,
+        f107a: float,
+        ap: float,
+        lat_deg: float,
+        alt_min_km: float = 100.0,
+        alt_max_km: float = 2000.0,
+        alt_step_km: float = 2.0,
+        storm_time: bool = False,
+        reference_year: int = 2000,
+        label: str = "custom",
+    ):
+        """
+        Args:
+            alt_max_km: 2000 km by default -- the upper edge of the LEO region
+                as 47 CFR 25.283(e) defines it (`data/disposal_rules.json`),
+                so a compliance run cannot silently leave the table.
+            reference_year: only sets which twelve months are sampled. The
+                averaging makes the choice immaterial; it is a parameter so
+                the test suite can show that rather than assert it.
+        """
+        self.f107 = float(f107)
+        self.f107a = float(f107a)
+        self.ap = float(ap)
+        self.lat_deg = float(lat_deg)
+        self.storm_time = storm_time
+        self.label = label
+
+        self.alts_km = np.arange(
+            alt_min_km, alt_max_km + 0.5 * alt_step_km, alt_step_km, dtype=float
+        )
+        self._alt0 = float(self.alts_km[0])
+        self._alt_step = float(alt_step_km)
+        self._n_alt = int(self.alts_km.size)
+
+        dates = [
+            datetime(reference_year, m, 15, 12, 0)
+            for m in range(1, self._AVERAGING_MONTHS + 1)
+        ]
+        lons = list(
+            np.linspace(-180.0, 180.0, self._AVERAGING_LONGITUDES, endpoint=False)
+        )
+        n = len(dates)
+        out = msis.calculate(
+            dates, lons, [self.lat_deg], self.alts_km,
+            [self.f107] * n, [self.f107a] * n, [[self.ap] * 7] * n,
+            options=_options(storm_time),
+        )
+        # (ndates, nlons, nlats, nalts, nspecies) -> mean over dates and lons.
+        rho = np.asarray(out)[..., 0].reshape(n, len(lons), self._n_alt)
+        if not np.all(np.isfinite(rho)) or np.any(rho <= 0.0):
+            raise ValueError("pymsis returned non-positive or non-finite density")
+        self.rho_profile = rho.mean(axis=(0, 1))
+        self._log_rho = np.log(self.rho_profile)
+
+    @classmethod
+    def for_level(
+        cls,
+        level: str,
+        sw: "SpaceWeather",
+        lat_deg: float,
+        **kwargs,
+    ) -> "ClimatologyDensity":
+        """Build the low / mean / high activity profile from the observed record.
+
+        The F10.7 and Ap values come from percentiles of SW-All.csv, not from
+        constants written here, so they are traceable to the same file the
+        validated V1 runs used.
+
+        F10.7 and its 81-day average are set to the same percentile. They track
+        each other closely at a sustained activity level, which is precisely
+        what this model represents -- a level held for years, not a single day.
+        """
+        try:
+            p = SOLAR_ACTIVITY_PERCENTILES[level]
+        except KeyError:
+            raise ValueError(
+                f"unknown solar activity level {level!r}; "
+                f"expected one of {sorted(SOLAR_ACTIVITY_PERCENTILES)}"
+            ) from None
+        f107 = sw.f107_percentile(p)
+        return cls(
+            f107=f107,
+            f107a=f107,
+            ap=sw.ap_percentile(p),
+            lat_deg=lat_deg,
+            label=level,
+            **kwargs,
+        )
+
+    def __call__(self, t_s: float, h_m: float) -> float:
+        """Density at altitude `h_m`. `t_s` is accepted and ignored.
+
+        The signature matches `DensityGrid.__call__` so the two are
+        interchangeable in a `deriv` closure. Time is ignored by construction,
+        not by oversight -- see the class docstring.
+        """
+        return float(self.lookup(np.asarray([h_m], dtype=float))[0])
+
+    def lookup(self, h_m: np.ndarray) -> np.ndarray:
+        """Vectorised log-linear interpolation in altitude.
+
+        Altitude is clamped to the tabulated range, as `DensityGrid.lookup`
+        clamps and for the same reason: RK4's interior stages can evaluate
+        outside it, and extrapolating an exponential there diverges.
+        """
+        h_km = np.clip(
+            np.asarray(h_m, dtype=float) / 1e3, self._alt0, self.alts_km[-1]
+        )
+        x = (h_km - self._alt0) / self._alt_step
+        i = np.clip(np.floor(x).astype(np.intp), 0, self._n_alt - 2)
+        w = x - i
+        return np.exp(self._log_rho[i] * (1.0 - w) + self._log_rho[i + 1] * w)
+
+    def max_relative_error(self, n_probe: int = 60) -> float:
+        """Interpolation error at cell midpoints, against fresh pymsis calls.
+
+        Probes midpoints because that is where linear interpolation is worst.
+        The comparison recomputes the same twelve-month, eight-longitude mean
+        from pymsis rather than reusing the stored profile -- comparing the
+        interpolator against the table it was built from would only be testing
+        numpy's interpolation against my own, which is a tautology and passes
+        at exactly zero even if the table is wrong.
+
+        This is the `DensityGrid` <1% requirement (PHYSICS.md §6.3) applied to
+        the climatology table. It measures the *altitude interpolation* only;
+        the averaging and the constant-indices assumption are modelling
+        choices documented in the class docstring, not errors to be bounded.
+        """
+        mid_km = (self.alts_km[:-1] + self.alts_km[1:]) / 2.0
+        if mid_km.size > n_probe:
+            mid_km = mid_km[:: max(1, mid_km.size // n_probe)]
+
+        dates = [
+            datetime(2000, m, 15, 12, 0)
+            for m in range(1, self._AVERAGING_MONTHS + 1)
+        ]
+        lons = list(
+            np.linspace(-180.0, 180.0, self._AVERAGING_LONGITUDES, endpoint=False)
+        )
+        n = len(dates)
+        out = msis.calculate(
+            dates, lons, [self.lat_deg], mid_km,
+            [self.f107] * n, [self.f107a] * n, [[self.ap] * 7] * n,
+            options=_options(self.storm_time),
+        )
+        exact = np.asarray(out)[..., 0].reshape(n, len(lons), mid_km.size)
+        exact = exact.mean(axis=(0, 1))
+
+        approx = self.lookup(mid_km * 1e3)
+        return float(np.max(np.abs(approx - exact) / exact))
+
+    def __repr__(self) -> str:
+        return (
+            f"ClimatologyDensity(level={self.label!r}, f107={self.f107:.1f}, "
+            f"ap={self.ap:.1f}, lat={self.lat_deg:.1f}deg, "
+            f"alt={self.alts_km[0]:.0f}-{self.alts_km[-1]:.0f}km)"
+        )
 
 
 class DensityGrid:
