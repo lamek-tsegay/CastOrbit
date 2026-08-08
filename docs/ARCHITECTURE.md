@@ -4,7 +4,9 @@ Standing brief for this repository. Read this first, every session.
 Read `docs/V2_BRIEF.md` **before** this file — it defines the current scope and
 wins wherever the two disagree about *what the project is*.
 Read `PHYSICS.md` before writing any simulation code; it wins wherever
-anything disagrees about *how the physics works*.
+anything disagrees about *how the physics works*. `docs/PHYSICS_V2.md`
+documents the equations V2 adds (adaptive stepping, the climatology
+atmosphere, disposal delta-v) and does not modify anything in `PHYSICS.md`.
 
 ---
 
@@ -96,6 +98,8 @@ computed, show that clearly rather than faking a result.
 │   ├── dynamics.py         the da/dt and dm/dt equations
 │   ├── critical.py         critical density and critical altitude solver
 │   ├── satellite.py        config dataclasses, ThrusterMode enum
+│   ├── mission.py          V2 entry point: arbitrary altitude/inclination/epoch
+│   ├── disposal.py         V2 delta-v, propellant, compliance verdict
 │   ├── montecarlo.py       batch runs, outcome taxonomy
 │   ├── sweeps.py           insertion altitude, ram area, safe-mode timing
 │   ├── export.py           JSON emission for the frontend
@@ -106,13 +110,17 @@ computed, show that clearly rather than faking a result.
 ├── data/
 │   ├── SW-All.csv                  CelesTrak space weather indices
 │   ├── satellite_specs.json        hardware, each field source + confidence tagged
+│   ├── disposal_rules.json         post-mission disposal rules, each cited
 │   ├── event_feb2022.json          validation target parameters
 │   └── starlink_snapshot.txt       TLE snapshot, offline use
 │
 ├── out/                    generated JSON — gitignored, regenerable
 │
 ├── docs/
+│   ├── V2_BRIEF.md         current scope -- read before this file
 │   ├── ARCHITECTURE.md     this file
+│   ├── PHYSICS_V2.md       equations added in V2
+│   ├── SOURCES.md          every external source cited
 │   └── baruah_2024.pdf     the validation paper
 │
 └── web/                    React + Vite frontend
