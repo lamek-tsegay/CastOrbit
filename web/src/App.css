@@ -1,0 +1,364 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ---------- header ---------- */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  flex-wrap: wrap;
+}
+
+.app-title {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.app-name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-bright);
+  letter-spacing: 0.02em;
+}
+
+.app-subtitle {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: var(--mono);
+}
+
+.nav-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px;
+}
+
+.nav-tab {
+  background: transparent;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.nav-tab.active {
+  background: var(--bg);
+  color: var(--text-bright);
+}
+
+.nav-tab:hover:not(.active) {
+  color: var(--text);
+}
+
+/* ---------- scrubber ---------- */
+
+.scrubber {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.scrubber-play {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.scrubber-play:hover {
+  border-color: var(--accent);
+}
+
+.scrubber-range {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.scrubber-speed {
+  background: var(--bg-panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
+.scrubber-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-family: var(--mono);
+  min-width: 168px;
+  line-height: 1.35;
+}
+
+.scrubber-utc {
+  font-size: 12px;
+  color: var(--text-bright);
+}
+
+.scrubber-elapsed {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* ---------- main / views ---------- */
+
+.app-main {
+  flex: 1;
+  padding: 16px 18px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.view-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.view-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+
+.view-note {
+  font-size: 12px;
+  color: var(--text-dim);
+  max-width: 68ch;
+}
+
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.panel-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-bright);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- legend ---------- */
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.legend-count {
+  color: var(--text-bright);
+  font-family: var(--mono);
+  font-weight: 600;
+}
+
+/* ---------- run selector ---------- */
+
+.run-selector {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.run-selector-option {
+  flex: 1;
+  min-width: 220px;
+  text-align: left;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.run-selector-option.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-panel-2));
+}
+
+.run-selector-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-bright);
+}
+
+.run-selector-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.run-selector-counts {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+  margin-top: 4px;
+}
+
+.run-selector-drag {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* ---------- globe ---------- */
+
+.globe-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 16px;
+  align-items: start;
+}
+
+.globe-canvas-wrap {
+  background: #000;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  min-height: 520px;
+}
+
+.globe-detail dt {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 8px;
+}
+
+.globe-detail dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-bright);
+}
+
+.globe-detail .cause {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* ---------- altitude chart ---------- */
+
+.altitude-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .altitude-grid, .globe-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- tables ---------- */
+
+.data-table {
+  font-size: 12.5px;
+}
+
+.data-table th {
+  text-align: left;
+  color: var(--text-dim);
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  color: var(--text);
+}
+
+.data-table td.label {
+  font-family: var(--sans);
+  color: var(--text-bright);
+}
+
+.pass {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.fail {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.03em;
+}
+
+.badge-weakest {
+  background: color-mix(in srgb, var(--amber) 20%, transparent);
+  color: var(--amber);
+}
+
+.sweeps-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
