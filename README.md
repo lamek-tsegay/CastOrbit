@@ -132,6 +132,28 @@ V2 was for: pinning `A` from geometry constrains one of the three inseparable
 factors by construction instead of by assumption
 ([`docs/V2_BRIEF.md`](docs/V2_BRIEF.md) §2).
 
+### What the published 4.48 m² actually is
+
+The solver also reinterprets the number the whole V1 sweep was built around.
+
+Baruah's published *maximum* ram area, 4.48 m², reproduces almost exactly as
+the **face-on area of the chassis** using the larger of the two sourced
+dimension pairs: 3.0 × 1.5 = 4.50 m², agreeing to **0.45%**. It is not a
+broadside. A genuine broadside — array included, flat to the flow — is
+**~15 m²**, more than three times larger. It is not even the chassis's own
+geometric maximum: a box presents most area corner-on, giving 4.65 m² for the
+same chassis, 3.3% above face-on.
+
+So 4.48 m² is best read as *chassis face-on, solar array feathered*. That is
+not a quibble about a number. It says the published range the V1 sweeps used —
+1.00 to 4.48 m² — describes a **feathered configuration throughout**, which is
+consistent with the knife-edge attitude the fleet was commanded into
+([PHYSICS.md §5](PHYSICS.md#5-safe-mode--the-physical-crux)) and with the spec
+file's own note that one secondary source describing a 5–6 m² area also
+describes the array as "feathered parallel to the velocity vector", a
+contradiction that source never resolves. Pinned in
+[`tests/test_geometry.py`](tests/test_geometry.py).
+
 **What this means:** presenting "Cd = 2.2 loses everyone, Cd = 1.0 roughly
 matches" as a contradiction between two arbitrary choices would be the wrong
 reading. It is the same 15–20% effective-drag correction showing up a third
