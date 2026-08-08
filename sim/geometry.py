@@ -342,7 +342,7 @@ class Geometry:
         use_union: bool = False,
         n_coarse: int = 4000,
         n_refine: int = 200,
-        refine_rounds: int = 6,
+        refine_rounds: int = 10,
     ) -> tuple[float, np.ndarray]:
         """Search the sphere of attitudes for the min or max projected area.
 
@@ -351,6 +351,14 @@ class Geometry:
         piecewise-smooth in the direction and has no narrow spikes -- it is a
         sum of `|v.n|` terms -- so a coarse global scan followed by local
         refinement finds the extremum without needing a gradient.
+
+        **This is a numerical search, not a closed form**, so the result
+        carries a small error. With the defaults the cap shrinks to ~5e-6 rad,
+        giving agreement with the analytic box extremes to better than 1e-4
+        relative (`tests/test_geometry.py::test_box_extremes_match_the_closed_form`).
+        Extrema at a sharp corner of the `|v.n|` surface -- which is where a
+        box's minimum sits -- converge more slowly than smooth ones, so that
+        test is the binding check on these defaults.
 
         Returns `(area, direction)`.
         """
