@@ -10,6 +10,8 @@ out/*
 !out/sweep_insertion_altitude.png
 !out/sweep_ram_area.png
 !out/sweep_safe_mode_timing.png
+!out/screenshots/
+!out/screenshots/*.png
 reference/
 web/node_modules/
 web/dist/
